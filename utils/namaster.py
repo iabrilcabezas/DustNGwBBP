@@ -121,7 +121,7 @@ def get_mask(nside, mtype, **kwargs):
     return None
 
 
-def get_template(machine, nside, mtype, **kwargs):
+def get_template_wmask(machine, nside, mtype, **kwargs):
 
     '''
     Obtains modulating template. Constructed from Appendix A instructions
@@ -138,8 +138,10 @@ def get_template(machine, nside, mtype, **kwargs):
             'smooth_deg':   float. Smoothing scale of template in degrees
 
     ** Returns **
-    np.array()
+    template: np.array()
             modulating template
+    w_mask: np.array()
+            mask
     '''
 
     path_dict = dict(pathnames(machine))
@@ -162,4 +164,4 @@ def get_template(machine, nside, mtype, **kwargs):
     check = np.isclose(wtilde2_omega_mask, w2_omega_mask)
     assert check, "<w2> != <w2> ERROR"
 
-    return template
+    return (template, w_mask)
