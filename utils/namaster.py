@@ -3,16 +3,16 @@ import healpy as hp
 import pymaster as nmt
 from astropy import units as u
 from astropy.coordinates import SkyCoord
-from params import pathnames
+from utils.params import pathnames
 
-def get_bandpowers(NSIDE, width_ell):
+def get_bandpowers(nside, width_ell):
 
     '''
     Construct linear binning scheme of bandpower
 
     Parameters
     ----------
-    NSIDE: int
+    nside: int
             resolution parameter
     width_ell: int
             bandpower width
@@ -25,7 +25,7 @@ def get_bandpowers(NSIDE, width_ell):
             effective multiple associated with each bandpower
     '''
 
-    bin_bpw = nmt.NmtBin.from_nside_linear(NSIDE, width_ell)
+    bin_bpw = nmt.NmtBin.from_nside_linear(nside, width_ell)
     ell_eff = bin_bpw.get_effective_ells()
 
     return bin_bpw, ell_eff
@@ -57,13 +57,13 @@ def get_couplingmatrix(f_a, f_b, bin_bpw):
     return nmtw.get_coupling_matrix()
 
 
-def get_mask(NSIDE, mtype, **kwargs):
+def get_mask(nside, mtype, **kwargs):
 
     '''
     Obtain mask of type mtype
 
     **Parameters**
-    NSIDE: int
+    nside: int
             resolution
     mtype: str
             type of mask. 'full' or 'bicep'
@@ -78,16 +78,16 @@ def get_mask(NSIDE, mtype, **kwargs):
 
     '''
 
-    NPIX  = hp.nside2npix(NSIDE)
+    npix  = hp.nside2npix(nside)
 
     if mtype == 'full':
 
-        return np.ones(NPIX)
+        return np.ones(npix)
 
 
     if mtype == 'bicep':
 
-        w_bicep = np.zeros(NPIX)
+        w_bicep = np.zeros(npix)
 
         # join three triangles to create bicep-like mask
         # coordinates in (RA, DEC) taken from Fig. 4 https://arxiv.org/pdf/2210.05684.pdf. region amplify to recover fsky bicep (0.014) after apodization
@@ -110,7 +110,7 @@ def get_mask(NSIDE, mtype, **kwargs):
                 # hp in (colatitude and longitude)
                 vecs[j] = hp.ang2vec(np.pi/2 -  b_gal_rad, l_gal_rad)
 
-            ipix_bicep =hp.query_polygon(nside = NSIDE, vertices = vecs)
+            ipix_bicep =hp.query_polygon(nside = nside, vertices = vecs)
             w_bicep[ipix_bicep] = 1. # this is the region we want (1)
 
         # smooth the mask
@@ -121,7 +121,7 @@ def get_mask(NSIDE, mtype, **kwargs):
     return None
 
 
-def get_template(machine, NSIDE, mtype, **kwargs):
+def get_template(machine, nside, mtype, **kwargs):
 
     '''
     Obtains modulating template. Constructed from Appendix A instructions
@@ -129,7 +129,7 @@ def get_template(machine, NSIDE, mtype, **kwargs):
     ** Parameters **
     machine: str
             Machine where code runs
-    NSIDE: int
+    nside: int
             resolution of maps
     mtype: str
             type of mask
@@ -142,16 +142,16 @@ def get_template(machine, NSIDE, mtype, **kwargs):
             modulating template
     '''
 
-    path_dict = pathnames(machine)
+    path_dict = dict(pathnames(machine))
 
     # map from which to create anisotropic correlated template
     p353 = hp.read_map(path_dict['planck_data']+"HFI_SkyMap_353-psb-field-IQU_2048_R3.00_full.fits")
-    p353_hi = hp.ud_grade(p353, NSIDE)
+    p353_hi = hp.ud_grade(p353, nside)
     # create large-scale modulating template by smoothing 353 map
     template_0 = hp.smoothing(p353_hi, fwhm=np.deg2rad(kwargs['smooth_deg']))
 
     # obtain mask
-    w_mask = get_mask(NSIDE, mtype, **kwargs)
+    w_mask = get_mask(nside, mtype, **kwargs)
     w2_omega_mask = np.mean(w_mask**2)
 
     template = template_0 * np.sqrt( w2_omega_mask / np.mean(w_mask**2 * template_0**2))
@@ -160,6 +160,6 @@ def get_template(machine, NSIDE, mtype, **kwargs):
     wtilde_mask = w_mask * template
     wtilde2_omega_mask = np.mean(wtilde_mask**2)
     check = np.isclose(wtilde2_omega_mask, w2_omega_mask)
-    assert check is True, "<w2> != <w2> ERROR"
+    assert check, "<w2> != <w2> ERROR"
 
     return template
