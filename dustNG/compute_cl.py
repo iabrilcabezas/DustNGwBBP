@@ -114,7 +114,7 @@ def add_tracers(machine, experiment, larr_all):
     s_d = sacc.Sacc()
 
     band_names = get_band_names(experiment)
-     # Bandpasses: 
+     # Bandpasses:
     bpss = import_bandpasses(machine, experiment)
     # Beams
     beams = import_beams(experiment, larr_all)
@@ -134,16 +134,47 @@ def add_tracers(machine, experiment, larr_all):
 
     return s_d
 
-def compute_cl_forcov(machine, experiment, lmin, dell, nbands, ctype):
+def add_powerspectra(experiment, s_d, bpw_freq_sig, leff, polarization):
+
+    '''
+    add power spectra to sacc
+    '''
+
+    band_names = get_band_names(experiment)
+    nfreqs = len(band_names)
+
+    nmodes = len(polarization)
+
+    nmaps=nmodes*nfreqs
+    indices_tr=np.triu_indices(nmaps)
+
+    map_names=[]
+    for ib in range(nfreqs):
+        if 'E' in polarization:
+            map_names.append(f'band{ib+1}_E')
+        if 'B' in polarization:
+            map_names.append(f'band{ib+1}_B')
+
+    for (i1, i2) in zip(indices_tr[0], indices_tr[1]):
+        band1 = map_names[i1][:-2]
+        band2 = map_names[i2][:-2]
+        pol1 = map_names[i1][-1].lower()
+        pol2 = map_names[i2][-1].lower()
+        cl_type = f'cl_{pol1}{pol2}'
+        s_d.add_ell_cl(cl_type, band1, band2, leff, bpw_freq_sig[i1, i2, :])
+
+    return s_d
+
+def compute_cl_forcov(machine, experiment, lmin, dell, nbands, ctype, polarization):
 
     '''
     
     
     '''
 
-    nmodes = 1
+    nmodes = len(polarization)
 
-    lmax, larr_all, lbands, leff = get_ell_arrays(lmin, dell, nbands)
+    lmax, larr_all, _ , leff = get_ell_arrays(lmin, dell, nbands)
 
     band_names = get_band_names(experiment)
     nfreqs = len(band_names)
@@ -177,13 +208,14 @@ def compute_cl_forcov(machine, experiment, lmin, dell, nbands, ctype):
     bpw_comp=np.sum(dls_comp[:,:,:,:,None,:]*windows[None,None,None, None, :,:],axis=5)
 
     # Convolve with bandpasses
-    seds_all = get_convolved_seds(band_names, bpss)
+    seds = get_convolved_seds(band_names, bpss)
 
     if ncomp == 1:
-        seds = np.zeros([1, nfreqs])
-        seds[0,:] = seds_all[1,:]
-    if ncomp == 2:
-        seds = seds_all
+        # seds = np.zeros([1, nfreqs])
+        # seds[0,:] = seds_all[1,:]
+        seds = np.array([seds[1,:]])
+    # if ncomp == 2:
+    #     seds = seds_all
 
     bpw_freq_sig = np.einsum('ik,jm,iljno', seds, seds, bpw_comp)
     
@@ -223,18 +255,6 @@ def compute_cl_forcov(machine, experiment, lmin, dell, nbands, ctype):
 
     # Adding power spectra
     print("Adding spectra")
-    nmaps=nmodes*nfreqs
-    indices_tr=np.triu_indices(nmaps)
-    map_names=[]
-    for ib, n in enumerate(band_names):
-        map_names.append('band%d' % (ib+1) + '_B')
-
-    for (i1, i2) in zip(indices_tr[0], indices_tr[1]):
-        n1 = map_names[i1][:-2]
-        n2 = map_names[i2][:-2]
-        p1 = map_names[i1][-1].lower()
-        p2 = map_names[i2][-1].lower()
-        cl_type = f'cl_{p1}{p2}'
-        s_d.add_ell_cl(cl_type, n1, n2, leff, bpw_freq_sig[i1, i2, :])
+    s_d = add_powerspectra(experiment, s_d, bpw_freq_sig, leff, polarization)
 
     return s_d
