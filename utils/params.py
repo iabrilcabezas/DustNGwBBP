@@ -1,6 +1,21 @@
-def params2str(NSIDE, experiment, mtype):
+def get_namerun(kwargs_dict):
 
-    return '_'.join([str(NSIDE), experiment, mtype])
+    '''
+    Returns string that contains all arguments used in the code run
+
+    ** Parameters **
+    kwargs_dict: dict
+            'width_l'
+            'apo_deg'
+            'smooth_deg'
+
+    ** Returns **
+    str
+    '''
+
+    name_run = '_'.join(map(str, kwargs_dict.values()))
+
+    return name_run
 
 def pathnames(machine):
 
@@ -33,7 +48,7 @@ def pathnames(machine):
     #   figure_path = '/pscratch/sd/i/iabril/plots/'
         planck_path = '/pscratch/sd/i/iabril/data/PlanckData/'
         path_dict['planck_data'] = planck_path
-    
+
     path_dict['BK15_data']   = bicep_BK15
     path_dict['bbpipe_path'] = bbpipe_path
 
