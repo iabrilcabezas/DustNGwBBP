@@ -1,10 +1,17 @@
-import sys
-sys.path.append('/global/common/software/act/python/DustNGwBBP')
+'''
+compute cell
+'''
+
+#import sys
 import numpy as np
 import sacc
 from utils.params import pathnames
 import utils.noise_calc as nc
 from utils.SED import get_band_names, Bpass, get_component_spectra, get_convolved_seds
+from utils.bandpowers import get_ell_arrays
+
+#sys.path.append('/global/common/software/act/python/DustNGwBBP')
+
 # from utils.binning import cut_array, rebin
 
 
@@ -39,38 +46,109 @@ from utils.SED import get_band_names, Bpass, get_component_spectra, get_convolve
 #             bpw_freq_noi[ib,0,ib,0,:]=n_bpw[ib,:]
 #             bpw_freq_noi[ib,1,ib,1,:]=n_bpw[ib,:]
 
-
-def compute_Cell_forcov(machine, experiment, lmin, dell, nbands, ctype):
+def import_bandpasses(machine, experiment):
 
     '''
-    
-    
+    Imports bandpasses
     '''
-
-    path_dict = dict(pathnames(experiment))
-    nmodes = 1
-
-    lmax = lmin + dell * nbands
-
-    larr_all = np.arange(lmax + 1)
-    lbands = np.linspace(lmin,lmax,nbands+1,dtype=int)
-    leff = 0.5*(lbands[1:]+lbands[:-1])
 
     band_names = get_band_names(experiment)
-    nfreqs = len(band_names)
+    path_dict = dict(pathnames(machine))
 
-    # Bandpasses: 
     if experiment == 'bicep':
-        bpss = {n: Bpass(n, path_dict['BK15_data'] + f'BK15_{n}_bandpass_20180920.txt') for n in band_names}
+        bpss = {n: Bpass(n, path_dict['BK15_data'] +\
+                             f'BK15_{n}_bandpass_20180920.txt') for n in band_names}
     if experiment == 'so':
-        bpss = {n: Bpass(n,path_dict['bbpipe_path'] + f'examples/data/bandpasses/{n}.txt') \
-                             for n in band_names}
+        bpss = {n: Bpass(n,path_dict['bbpipe_path'] +\
+                             f'examples/data/bandpasses/{n}.txt') for n in band_names}
 
-    # Beams
+    return bpss
+
+def import_beams(experiment, larr_all):
+
+    '''
+    Imports beams
+    '''
+
+    band_names = get_band_names(experiment)
+
     if experiment == 'bicep':
         beams ={band_names[i]: b for i, b in enumerate(nc.bicep_beams_exp(larr_all))}
     if experiment == 'so':
         beams ={band_names[i]: b for i, b in enumerate(nc.Simons_Observatory_V3_SA_beams(larr_all))}
+
+    return beams
+
+def get_windows(lmin, dell, nbands, weight):
+
+    '''
+    get windows
+    '''
+
+    weight_types = ['Dl', 'Cl']
+    assert weight in weight_types, 'not a type of weight!'
+
+    lmax, larr_all, lbands, _ = get_ell_arrays(lmin, dell, nbands)
+
+    windows = np.zeros([nbands,lmax+1])
+
+    cl_weights = np.ones_like(larr_all)
+
+    for b,(l0,lf) in enumerate(zip(lbands[:-1],lbands[1:])):
+
+        if weight == 'Dl':
+            windows[b,l0:lf] = (larr_all * (larr_all + 1)/(2*np.pi))[l0:lf]
+        if weight == 'Cl':
+            windows[b, l0:lf] = cl_weights[l0:lf]
+
+        windows[b,:] /= dell
+
+    return windows
+
+def add_tracers(machine, experiment, larr_all):
+
+    '''
+    Creates sacc object and add tracers
+    '''
+
+    s_d = sacc.Sacc()
+
+    band_names = get_band_names(experiment)
+     # Bandpasses: 
+    bpss = import_bandpasses(machine, experiment)
+    # Beams
+    beams = import_beams(experiment, larr_all)
+
+    for ib, n in enumerate(band_names):
+        bandpass = bpss[n]
+        beam = beams[n]
+        s_d.add_tracer('NuMap', f'band{ib+1}',
+                        quantity='cmb_polarization',
+                        spin=2,
+                        nu=bandpass.nu,
+                        bandpass=bandpass.bnu,
+                        ell=larr_all,
+                        beam=beam,
+                        nu_unit='GHz',
+                        map_unit='uK_CMB')
+
+    return s_d
+
+def compute_cl_forcov(machine, experiment, lmin, dell, nbands, ctype):
+
+    '''
+    
+    
+    '''
+
+    nmodes = 1
+
+    lmax, larr_all, lbands, leff = get_ell_arrays(lmin, dell, nbands)
+
+    band_names = get_band_names(experiment)
+    nfreqs = len(band_names)
+
+    bpss = import_bandpasses(machine, experiment)
 
     cl2dl=larr_all*(larr_all+1)/(2*np.pi)
     dl2cl=np.zeros_like(cl2dl)
@@ -94,12 +172,7 @@ def compute_Cell_forcov(machine, experiment, lmin, dell, nbands, ctype):
 
     dls_comp *= dl2cl[None, None, None, None, :]
 
-    windows = np.zeros([nbands,lmax+1])
-
-    cl_weights = np.ones_like(larr_all)
-    for b,(l0,lf) in enumerate(zip(lbands[:-1],lbands[1:])):
-        windows[b,l0:lf] = cl_weights[l0:lf]
-        windows[b,:] /= dell
+    windows = get_windows(lmin, dell, nbands, weight = 'Cl')
 
     bpw_comp=np.sum(dls_comp[:,:,:,:,None,:]*windows[None,None,None, None, :,:],axis=5)
 
@@ -144,21 +217,10 @@ def compute_Cell_forcov(machine, experiment, lmin, dell, nbands, ctype):
 
     bpw_freq_sig = bpw_freq_sig.reshape([nfreqs*nmodes,nfreqs*nmodes, nbands])
 
-    s_d = sacc.Sacc()
-    # Adding tracers
+    # Create sacc and add tracers
     print("Adding tracers")
-    for ib, n in enumerate(band_names):
-        bandpass = bpss[n]
-        beam = beams[n]
-        s_d.add_tracer('NuMap', 'band%d' % (ib+1),
-                        quantity='cmb_polarization',
-                        spin=2,
-                        nu=bandpass.nu,
-                        bandpass=bandpass.bnu,
-                        ell=larr_all,
-                        beam=beam,
-                        nu_unit='GHz',
-                        map_unit='uK_CMB')
+    s_d = add_tracers(machine, experiment, larr_all)
+
     # Adding power spectra
     print("Adding spectra")
     nmaps=nmodes*nfreqs

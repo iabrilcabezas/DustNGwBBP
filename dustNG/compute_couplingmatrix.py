@@ -1,3 +1,9 @@
+'''
+coupling matrix
+
+'''
+
+
 import pymaster as nmt
 import numpy as np
 from utils.namaster import get_bandpowers, get_template_wmask, get_couplingmatrix

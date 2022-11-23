@@ -1,3 +1,7 @@
+'''
+binning
+'''
+
 import numpy as np
 
 # Only work with 1D and 2D arrays
