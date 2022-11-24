@@ -17,4 +17,19 @@ def get_ell_arrays(lmin, dell, nbands):
 
     return (lmax, larr_all, lbands, leff)
 
-def 
+def dell2cell_lmax(lmax):
+
+    '''
+    standard conversion Dell to Cell of ell array 0, ... , lmax
+
+    **Parameters**
+    lmax: int
+    '''
+
+    ell = np.arange(lmax + 1)
+
+    cl2dl=ell*(ell+1)/(2*np.pi)
+    dl2cl=np.zeros_like(cl2dl)
+    dl2cl[1:] = 1/(cl2dl[1:])
+
+    return dl2cl

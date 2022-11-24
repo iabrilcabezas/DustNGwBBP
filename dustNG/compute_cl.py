@@ -8,78 +8,54 @@ import sacc
 from utils.params import pathnames
 import utils.noise_calc as nc
 from utils.SED import get_band_names, Bpass, get_component_spectra, get_convolved_seds
-from utils.bandpowers import get_ell_arrays
+from utils.bandpowers import get_ell_arrays, dell2cell_lmax
+
+EXPERIMENT = 'bicep'
+MACHINE = 'perl'
+LMIN = 10
+DELL = 35
+NBANDS = 9
+POLARIZATION = 'B'
+
+band_names = get_band_names(EXPERIMENT)
+path_dict = dict(pathnames(MACHINE))
+lmax, larr_all, lbands, leff = get_ell_arrays(LMIN, DELL, NBANDS)
+
+nfreqs = len(band_names)
+nmodes = len(POLARIZATION)
 
 #sys.path.append('/global/common/software/act/python/DustNGwBBP')
-
 # from utils.binning import cut_array, rebin
 
-
-# def add_noise(machine, bpw_freq, experiment, nmodes, forcov):
-
-#     if experiment == 'bicep':
-
-#         n_ell, n_bpw = nc.bicep_noise_fromfile(machine)
-#         assert len(n_ell) == bpw_freq.shape[-1]
-
-#         if not forcov:
-#                 n_bpw *= (n_ell * (n_ell + 1) / (2 * np.pi) ) # weight, we are working with Dl
-
-#         fsky = nc.fsky_fromnoise(machine)[0]
-
-#         bpw_freq_noi=np.zeros_like(bpw_freq)
-#         for ib,n in enumerate(n_bpw):
-#             for nm in nmodes:
-#                    bpw_freq_noi[ib,nm,ib,nm,:]=n_bpw[ib,:]
-        
-#     if experiment == 'so':
-#         # N_ell
-#         sens=2
-#         knee=1
-#         ylf=1
-#         fsky=0.1
-#         nell=np.zeros([bpw_freq.shape[0],lmax+1])
-#         _,nell[:,2:],_=nc.Simons_Observatory_V3_SA_noise(sens,knee,ylf,fsky,lmax+1,1)
-#         n_bpw=np.sum(nell[:,None,:]*windows[None,:,:],axis=2)
-#         bpw_freq_noi=np.zeros_like(bpw_freq_sig)
-#         for ib,n in enumerate(n_bpw):
-#             bpw_freq_noi[ib,0,ib,0,:]=n_bpw[ib,:]
-#             bpw_freq_noi[ib,1,ib,1,:]=n_bpw[ib,:]
-
-def import_bandpasses(machine, experiment):
+def import_bandpasses():
 
     '''
     Imports bandpasses
     '''
 
-    band_names = get_band_names(experiment)
-    path_dict = dict(pathnames(machine))
-
-    if experiment == 'bicep':
+    if EXPERIMENT == 'bicep':
         bpss = {n: Bpass(n, path_dict['BK15_data'] +\
                              f'BK15_{n}_bandpass_20180920.txt') for n in band_names}
-    if experiment == 'so':
+    if EXPERIMENT == 'so':
         bpss = {n: Bpass(n,path_dict['bbpipe_path'] +\
                              f'examples/data/bandpasses/{n}.txt') for n in band_names}
 
     return bpss
 
-def import_beams(experiment, larr_all):
+def import_beams():
 
     '''
     Imports beams
     '''
 
-    band_names = get_band_names(experiment)
-
-    if experiment == 'bicep':
+    if EXPERIMENT == 'bicep':
         beams ={band_names[i]: b for i, b in enumerate(nc.bicep_beams_exp(larr_all))}
-    if experiment == 'so':
+    if EXPERIMENT == 'so':
         beams ={band_names[i]: b for i, b in enumerate(nc.Simons_Observatory_V3_SA_beams(larr_all))}
 
     return beams
 
-def get_windows(lmin, dell, nbands, weight):
+def get_windows(weight):
 
     '''
     get windows
@@ -88,9 +64,7 @@ def get_windows(lmin, dell, nbands, weight):
     weight_types = ['Dl', 'Cl']
     assert weight in weight_types, 'not a type of weight!'
 
-    lmax, larr_all, lbands, _ = get_ell_arrays(lmin, dell, nbands)
-
-    windows = np.zeros([nbands,lmax+1])
+    windows = np.zeros([NBANDS,lmax+1])
 
     cl_weights = np.ones_like(larr_all)
 
@@ -101,11 +75,11 @@ def get_windows(lmin, dell, nbands, weight):
         if weight == 'Cl':
             windows[b, l0:lf] = cl_weights[l0:lf]
 
-        windows[b,:] /= dell
+        windows[b,:] /= DELL
 
     return windows
 
-def add_tracers(machine, experiment, larr_all):
+def add_tracers():
 
     '''
     Creates sacc object and add tracers
@@ -113,11 +87,10 @@ def add_tracers(machine, experiment, larr_all):
 
     s_d = sacc.Sacc()
 
-    band_names = get_band_names(experiment)
      # Bandpasses:
-    bpss = import_bandpasses(machine, experiment)
+    bpss = import_bandpasses()
     # Beams
-    beams = import_beams(experiment, larr_all)
+    beams = import_beams()
 
     for ib, n in enumerate(band_names):
         bandpass = bpss[n]
@@ -134,25 +107,20 @@ def add_tracers(machine, experiment, larr_all):
 
     return s_d
 
-def add_powerspectra(experiment, s_d, bpw_freq_sig, leff, polarization):
+def add_powerspectra(s_d, bpw_freq_sig):
 
     '''
     add power spectra to sacc
     '''
-
-    band_names = get_band_names(experiment)
-    nfreqs = len(band_names)
-
-    nmodes = len(polarization)
 
     nmaps=nmodes*nfreqs
     indices_tr=np.triu_indices(nmaps)
 
     map_names=[]
     for ib in range(nfreqs):
-        if 'E' in polarization:
+        if 'E' in POLARIZATION:
             map_names.append(f'band{ib+1}_E')
-        if 'B' in polarization:
+        if 'B' in POLARIZATION:
             map_names.append(f'band{ib+1}_B')
 
     for (i1, i2) in zip(indices_tr[0], indices_tr[1]):
@@ -165,25 +133,58 @@ def add_powerspectra(experiment, s_d, bpw_freq_sig, leff, polarization):
 
     return s_d
 
-def compute_cl_forcov(machine, experiment, lmin, dell, nbands, ctype, polarization):
+
+def add_noise(weight, bpw_freq_sig, fsky):
 
     '''
-    
-    
+    add noise
+    TODO: SO like noise for bicep
     '''
 
-    nmodes = len(polarization)
+    windows = get_windows(weight)
+        
+    if EXPERIMENT == 'bicep':
 
-    lmax, larr_all, _ , leff = get_ell_arrays(lmin, dell, nbands)
+        n_ell, n_bpw = nc.bicep_noise_fromfile(MACHINE)
+        assert np.all(np.isclose(n_ell, leff))
 
-    band_names = get_band_names(experiment)
-    nfreqs = len(band_names)
+        if weight == 'dl':
+        
+            n_bpw *= (n_ell * (n_ell + 1) / (2 * np.pi) )
 
-    bpss = import_bandpasses(machine, experiment)
 
-    cl2dl=larr_all*(larr_all+1)/(2*np.pi)
-    dl2cl=np.zeros_like(cl2dl)
-    dl2cl[1:] = 1/(cl2dl[1:])
+    if EXPERIMENT == 'so':
+
+        # N_ell
+        sens=2
+        knee=1
+        ylf=1
+        nell=np.zeros([nfreqs,lmax+1])
+        _,nell[:,2:],_=nc.Simons_Observatory_V3_SA_noise(sens,knee,ylf,fsky,lmax+1,1)
+        n_bpw=np.sum(nell[:,None,:]*windows[None,:,:],axis=2)
+        
+    bpw_freq_noi=np.zeros_like(bpw_freq_sig)
+    
+    for ib in range(len(n_bpw)):
+        bpw_freq_noi[ib,0,ib,0,:]=n_bpw[ib,:]
+        if nmodes == 2:
+            bpw_freq_noi[ib,1,ib,1,:]=n_bpw[ib,:]
+
+
+    return bpw_freq_noi
+
+
+def compute_cl_forcov(ctype):
+
+    '''
+    because for cov , weight = 'cl'
+    '''
+
+    weight = 'Cl'
+
+    bpss = import_bandpasses()
+
+    dl2cl = dell2cell_lmax(lmax)
 
     if ctype == 'dust':
         ncomp = 1
@@ -203,7 +204,7 @@ def compute_cl_forcov(machine, experiment, lmin, dell, nbands, ctype, polarizati
 
     dls_comp *= dl2cl[None, None, None, None, :]
 
-    windows = get_windows(lmin, dell, nbands, weight = 'Cl')
+    windows = get_windows(weight)
 
     bpw_comp=np.sum(dls_comp[:,:,:,:,None,:]*windows[None,None,None, None, :,:],axis=5)
 
@@ -218,43 +219,23 @@ def compute_cl_forcov(machine, experiment, lmin, dell, nbands, ctype, polarizati
     #     seds = seds_all
 
     bpw_freq_sig = np.einsum('ik,jm,iljno', seds, seds, bpw_comp)
+
+    fsky = nc.get_fsky(MACHINE, EXPERIMENT)
     
     if (ctype == 'all'):
-        
-        if experiment == 'bicep':
 
-            n_ell, n_bpw = nc.bicep_noise_fromfile(machine)
-            assert len(n_ell) == bpw_freq_sig.shape[-1]
-
-            fsky = nc.fsky_fromnoise(machine)[0]
-
-            bpw_freq_noi=np.zeros_like(bpw_freq_sig)
-            
-
-        if experiment == 'so':
-
-           # N_ell
-            sens=2
-            knee=1
-            ylf=1
-            fsky=0.1
-            nell=np.zeros([nfreqs,lmax+1])
-            _,nell[:,2:],_=nc.Simons_Observatory_V3_SA_noise(sens,knee,ylf,fsky,lmax+1,1)
-            n_bpw=np.sum(nell[:,None,:]*windows[None,:,:],axis=2)
-            bpw_freq_noi=np.zeros_like(bpw_freq_sig)
-        
-        for ib,n in enumerate(n_bpw):
-            bpw_freq_noi[ib,0,ib,0,:]=n_bpw[ib,:]        
+        ## add noise
+        bpw_freq_noi = add_noise(weight, bpw_freq_sig, fsky)
         bpw_freq_sig += bpw_freq_noi
 
-    bpw_freq_sig = bpw_freq_sig.reshape([nfreqs*nmodes,nfreqs*nmodes, nbands])
+    bpw_freq_sig = bpw_freq_sig.reshape([nfreqs*nmodes,nfreqs*nmodes, NBANDS])
 
     # Create sacc and add tracers
     print("Adding tracers")
-    s_d = add_tracers(machine, experiment, larr_all)
+    s_d = add_tracers()
 
     # Adding power spectra
     print("Adding spectra")
-    s_d = add_powerspectra(experiment, s_d, bpw_freq_sig, leff, polarization)
+    s_d = add_powerspectra(s_d, bpw_freq_sig)
 
     return s_d

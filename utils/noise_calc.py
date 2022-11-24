@@ -146,6 +146,23 @@ def fsky_fromnoise(machine):
 
     return (ell, fsky)
 
+def get_fsky(machine, experiment):
+
+    '''
+    return fsky
+    '''
+
+    if experiment == 'bicep':
+
+        fsky = np.mean(fsky_fromnoise(machine)[1])
+
+    if experiment == 'so':
+
+        fsky = 0.1
+
+    return fsky
+
+
 
 def Simons_Observatory_V3_SA_bands():
     ## returns the band centers in GHz for a CMB spectrum
