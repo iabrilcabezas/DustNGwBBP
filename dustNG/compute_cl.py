@@ -3,26 +3,33 @@ compute cell
 '''
 
 #import sys
+
+#sys.path.append('/global/common/software/act/python/DustNGwBBP')
+
 import numpy as np
 import sacc
-from utils.params import pathnames
+import yaml
+from utils.params import pathnames, Config
 import utils.noise_calc as nc
 from utils.SED import get_band_names, Bpass, get_component_spectra, get_convolved_seds
 from utils.bandpowers import get_ell_arrays, dell2cell_lmax
 
-EXPERIMENT = 'bicep'
-MACHINE = 'perl'
-LMIN = 10
-DELL = 35
-NBANDS = 9
-POLARIZATION = 'B'
+
+config = Config(yaml.load(open('config.yaml'), yaml.FullLoader))
+
+EXPERIMENT = config.global_param.experiment
+MACHINE = config.global_param.machine
+LMIN = config.bpw_param.lmin
+DELL = config.bpw_param.dell
+NBANDS = config.bpw_param.nbands
+POLARIZATION_cov = config.pol_param.pol_cov
 
 band_names = get_band_names(EXPERIMENT)
 path_dict = dict(pathnames(MACHINE))
 lmax, larr_all, lbands, leff = get_ell_arrays(LMIN, DELL, NBANDS)
 
 nfreqs = len(band_names)
-nmodes = len(POLARIZATION)
+nmodes = len(POLARIZATION_cov)
 
 #sys.path.append('/global/common/software/act/python/DustNGwBBP')
 # from utils.binning import cut_array, rebin
@@ -107,7 +114,7 @@ def add_tracers():
 
     return s_d
 
-def add_powerspectra(s_d, bpw_freq_sig):
+def add_powerspectra(s_d, bpw_freq_sig, polarization):
 
     '''
     add power spectra to sacc
@@ -118,9 +125,9 @@ def add_powerspectra(s_d, bpw_freq_sig):
 
     map_names=[]
     for ib in range(nfreqs):
-        if 'E' in POLARIZATION:
+        if 'E' in polarization:
             map_names.append(f'band{ib+1}_E')
-        if 'B' in POLARIZATION:
+        if 'B' in polarization:
             map_names.append(f'band{ib+1}_B')
 
     for (i1, i2) in zip(indices_tr[0], indices_tr[1]):
@@ -221,8 +228,8 @@ def compute_cl_forcov(ctype):
     bpw_freq_sig = np.einsum('ik,jm,iljno', seds, seds, bpw_comp)
 
     fsky = nc.get_fsky(MACHINE, EXPERIMENT)
-    
-    if (ctype == 'all'):
+
+    if ctype == 'all':
 
         ## add noise
         bpw_freq_noi = add_noise(weight, bpw_freq_sig, fsky)
@@ -236,6 +243,6 @@ def compute_cl_forcov(ctype):
 
     # Adding power spectra
     print("Adding spectra")
-    s_d = add_powerspectra(s_d, bpw_freq_sig)
+    s_d = add_powerspectra(s_d, bpw_freq_sig, POLARIZATION_cov)
 
     return s_d

@@ -1,8 +1,28 @@
 '''
 SED
 '''
-
+import yaml
 import numpy as np
+from utils.params import Config
+
+config = Config(yaml.load(open('config.yaml'), yaml.FullLoader))
+
+cosmo_params = config.cosmo_param
+cmb_params = cosmo_params.CMB
+dust_params = cosmo_params.dust
+model_params = cosmo_params.model
+
+A_dust_BB = dust_params['A_dust_BB']
+EB_dust = dust_params['EB_dust']
+alpha_dust_EE = dust_params['alpha_dust_EE']
+alpha_dust_BB = dust_params['alpha_dust_BB']
+beta_dust = dust_params['beta_dust']
+temp_dust = dust_params['temp_dust']
+nu0_dust = dust_params['nu0_dust']
+
+Alens = cmb_params['Alens']
+
+lnorm_PL = model_params['lnorm_PL']
 
 def get_band_names(experiment):
 
@@ -17,31 +37,11 @@ def get_band_names(experiment):
     list of band names
     '''
     if experiment == 'so':
-        band_names = ['LF1', 'LF2', 'MF1', 'MF2', 'UHF1', 'UHF2']
+        band_names = config.band_names.so
     if experiment == 'bicep':
-        band_names = ['95', '150', '220']
+        band_names = config.band_names.bicep
 
     return band_names
-
-A_dust_BB = 5.0
-EB_dust = 2.
-alpha_dust_EE = -0.42
-alpha_dust_BB = -0.2
-beta_dust = 1.59
-temp_dust = 19.6
-nu0_dust = 353.
-
-Alens = 1.0
-
-# A_dust_BB = 5.0       # from BICEP field 1510.09217
-# EB_dust = 1/0.524     # PL amplitude 1801.04945
-# alpha_dust_EE = -0.42 # PL exponent 1801.04945
-# alpha_dust_BB = -0.54 # PL exponent 1801.04945
-# beta_dust = 1.59      # modified BB emission 1409.5738
-# temp_dust = 19.6      # modified BB emission 1409.5738
-# nu0_dust = 353.
-lnorm_PL = 80.        # PL param 1801.04945
-
 
 #CMB spectrum
 def fcmb(nu):
