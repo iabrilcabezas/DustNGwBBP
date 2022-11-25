@@ -1,28 +1,19 @@
 '''
 first step
 '''
-import yaml
-
-from utils.params import Config, pathnames
-from dustNG.compute_cl import compute_cl_forcov
+from utils.params import config, path_dict, MACHINE, NSIDE, EXPERIMENT
+from dustNG.compute_cl import compute_cl
 from dustNG.compute_couplingmatrix import compute_couplingmatrix
+from dustNG.compute_cov import compute_cov, get_effective_cov
 
-config = Config(yaml.load(open('config.yaml'), yaml.FullLoader))
+compute_couplingmatrix(**config.mask_param.__dict__)
 
-MACHINE = config.global_param.machine
-NSIDE   = config.global_param.nside
-EXPERIMENT = config.global_param.experiment
+s_dust = compute_cl('dust', 'Cl', False)
+s_all = compute_cl('all', 'Cl', False)
 
-path_dict = dict(pathnames(MACHINE))
-## TODO: do i need the last part??? i changed dell_nmt place
-args_dict = {**config.mask_param.__dict__, **config.bpw_param.__dict__}
+compute_cov('dust')
+compute_cov('all')
 
-compute_couplingmatrix(**args_dict)
+get_effective_cov()
 
-s_dust = compute_cl_forcov('dust')
-
-print("Writing")
-s_dust.save_fits(path_dict['output_path'] + '_'.join([str(NSIDE), EXPERIMENT]) +\
-                 "_cls_dust_bb.fits", overwrite=True)
-
-
+s_all_Dl = compute_cl('all', 'Dl', True)

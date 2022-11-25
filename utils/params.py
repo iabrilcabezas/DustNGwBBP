@@ -3,6 +3,62 @@ params
 '''
 import yaml
 
+
+def get_namerun(kwargs_dict):
+
+    '''
+    Returns string that contains all arguments used in the code run
+
+    ** Parameters **
+    kwargs_dict: dict
+            'width_l'
+            'apo_deg'
+            'smooth_deg'
+
+    ** Returns **
+    str
+    '''
+
+    return '_'.join(map(str, kwargs_dict.values()))
+
+def pathnames(machine):
+
+    '''
+    Returns path to data depending on machine
+
+    ** Parameters **
+    machine: str
+            machine where code runs ('cori' or 'perl')
+
+    **Returns**
+    dict
+        stores path to data
+        'planck_path': Planck data
+    '''
+    config_load = Config(yaml.load(open('config.yaml'), yaml.FullLoader))
+
+    dict_path = {}
+
+    bicep_bk15 = config_load.path_param.bicep_bk15
+    bbpipe_path = config_load.path_param.bbpipe
+    output_path = config_load.path_param.output
+    camb_cmb_lens_nobb_path = config_load.path_param.camb_cmb_lens_nobb
+
+    if machine == 'cori':
+
+        dict_path['planck_data'] = config_load.path_param.planck_path_cori
+
+    if machine == 'perl':
+
+        dict_path['planck_data'] = config_load.path_param.planck_path_perl
+
+    dict_path['BK15_data']   = bicep_bk15
+    dict_path['bbpipe_path'] = bbpipe_path
+    dict_path['output_path'] = output_path
+    dict_path['camb_cmb_lens_nobb'] = camb_cmb_lens_nobb_path
+
+    return dict_path
+
 class GlobalConfig:
     '''
     doc
@@ -20,7 +76,7 @@ class BpwConfig:
         self.lmin = param['lmin']
         self.nbands = param['nbands']
         self.dell = param['dell']
-        
+
 class PolConfig:
     '''
     a
@@ -34,6 +90,11 @@ class PathConfig:
     '''
     def __init__(self, param):
         self.output = param['output_path']
+        self.bicep_bk15 = param['bicep_BK15']
+        self.bbpipe  = param['bbpipe_path']
+        self.planck_path_cori = param['planck_path_cori']
+        self.planck_path_perl = param['planck_path_perl']
+        self.camb_cmb_lens_nobb = param['camb_cmb_lens_nobb']
 
 class MaskConfig:
     '''
@@ -79,62 +140,38 @@ class Config:
         self.cosmo_param  = CosmoConfig(param['cosmology'])
         self.band_names   = BandConfig(param['band_names'])
 
-def get_namerun(kwargs_dict):
 
-    '''
-    Returns string that contains all arguments used in the code run
+config = Config(yaml.load(open('config.yaml'), yaml.FullLoader))
 
-    ** Parameters **
-    kwargs_dict: dict
-            'width_l'
-            'apo_deg'
-            'smooth_deg'
+NSIDE   = config.global_param.nside
+MACHINE = config.global_param.machine
+EXPERIMENT = config.global_param.experiment
+MTYPE   = config.mask_param.mask_type
+DELL_NMT = config.mask_param.dell_nmt
+LMIN = config.bpw_param.lmin
+DELL = config.bpw_param.dell
+NBANDS = config.bpw_param.nbands
+POLARIZATION_cov = config.pol_param.pol_cov
 
-    ** Returns **
-    str
-    '''
+band_names_config = config.band_names
 
-    name_run = '_'.join(map(str, kwargs_dict.values()))
+cosmo_params = config.cosmo_param
+cmb_params = cosmo_params.CMB
+dust_params = cosmo_params.dust
+model_params = cosmo_params.model
 
-    return name_run
+A_dust_BB = dust_params['A_dust_BB']
+EB_dust = dust_params['EB_dust']
+alpha_dust_EE = dust_params['alpha_dust_EE']
+alpha_dust_BB = dust_params['alpha_dust_BB']
+beta_dust = dust_params['beta_dust']
+temp_dust = dust_params['temp_dust']
+nu0_dust = dust_params['nu0_dust']
+Alens = cmb_params['Alens']
+lnorm_PL = model_params['lnorm_PL']
 
-def pathnames(machine):
+path_dict = dict(pathnames(MACHINE))
 
-    '''
-    Returns path to data depending on machine
-
-    ** Parameters **
-    machine: str
-            machine where code runs ('cori' or 'perl')
-
-    **Returns**
-    dict
-        stores path to data
-        'planck_path': Planck data
-    '''
-    config = Config(yaml.load(open('config.yaml'), yaml.FullLoader))
-
-
-    path_dict = {}
-
-    bicep_BK15 = '/global/cfs/cdirs/act/data/iabril/BICEP/'
-    bbpipe_path = '/global/cfs/cdirs/act/software/iabril/condaenvs/github_reps/BBPower/'
-    output_path = config.path_param.output
-
-    if machine == 'cori':
-
-    #   figure_path = '/global/cscratch1/sd/iabril/plots/'
-        planck_path = '/global/cscratch1/sd/iabril/PlanckData/'
-        path_dict['planck_data'] = planck_path
-
-    if machine == 'perl':
-
-    #   figure_path = '/pscratch/sd/i/iabril/plots/'
-        planck_path = '/pscratch/sd/i/iabril/data/PlanckData/'
-        path_dict['planck_data'] = planck_path
-
-    path_dict['BK15_data']   = bicep_BK15
-    path_dict['bbpipe_path'] = bbpipe_path
-    path_dict['output_path'] = output_path
-
-    return path_dict
+namerun_dict = {**config.global_param.__dict__, **config.bpw_param.__dict__, \
+                **config.mask_param.__dict__, **config.pol_param.__dict__}
+name_run  = get_namerun(namerun_dict)

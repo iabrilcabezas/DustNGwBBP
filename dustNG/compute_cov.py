@@ -3,25 +3,18 @@
 '''
 
 import numpy as np
-import yaml
 import sacc
 from astropy.io import fits
-from utils.params import Config
+from utils.params import EXPERIMENT, NBANDS, NSIDE, LMIN, DELL, POLARIZATION_cov, path_dict, name_run
 from utils.SED import get_band_names
-
-config = Config(yaml.load(open('config.yaml'), yaml.FullLoader))
-
-EXPERIMENT = config.global_param.experiment
-NSIDE = config.global_param.nside
-# MACHINE = config.global_param.machine
-# LMIN = config.bpw_param.lmin
-# DELL = config.bpw_param.dell
-# NBANDS = config.bpw_param.nbands
-POLARIZATION_cov = config.pol_param.pol_cov
+from utils.binning import rebin, cut_array
+from utils.bandpowers import get_ell_arrays
 
 band_names = get_band_names(EXPERIMENT)
 nfreqs = len(band_names)
 nmodes = len(POLARIZATION_cov)
+
+lmax, larr_all, lbands, leff = get_ell_arrays(LMIN, DELL, NBANDS)
 
 def geo_mean_cl(cl, a, b):
 
@@ -31,7 +24,7 @@ def geo_mean_cl(cl, a, b):
 
     return np.sqrt(cl[a] * cl[b])
 
-def compute_cov():
+def compute_cov(ctype):
 
     '''
     
@@ -42,18 +35,19 @@ def compute_cov():
     name_pol_cov = 'cl_' + 2 * POLARIZATION_cov.lower()
     # READ IN CL
 
-    s_d = sacc.Sacc.load_fits()
-    mw2_matrix = np.loadtxt()
-    mwt2_matrix = np.loadtxt()
+    s_d = sacc.Sacc.load_fits(path_dict['output_path'] + '_'.join([name_run, ctype, 'Cl']) + '_tot.fits')
+    mw2_matrix_full = np.loadtxt(path_dict['output_path'] + name_run + '_couplingM_w.txt')
+    mwt2_matrix_full = np.loadtxt(path_dict['output_path'] + name_run + '_couplingM_wt.txt')
 
     # read ell of cls from band1 as there'll always be band1
-    ellcl, _ = s_d.get_ell_cl(name_pol_cov, 'band1', 'band1')
-
-    # bin COV MW matrix:
-
-
+    ellcl, _ = s_d.get_ell_cl(name_pol_cov, 'band1', 'band1', return_cov = False)
+    
+    # cut and bin COV MW matrix:
+    mw2_matrix = rebin(cut_array(mw2_matrix_full, larr_all, LMIN, lmax), [NBANDS, NBANDS])
+    mwt2_matrix = rebin(cut_array(mwt2_matrix_full, larr_all, LMIN, lmax), [NBANDS, NBANDS])
 
     nells = len(ellcl)
+    assert len(ellcl == NBANDS), 'some binning on cl went wrong'
     ncombs = len(s_d.get_tracer_combinations())
 
     assert ncombs == (nmodes*nfreqs) * (nmodes*nfreqs+1) //2,\
@@ -76,13 +70,13 @@ def compute_cov():
 
     indices_tr = np.triu_indices(nfreqs)
 
-    prefactor_l = np.zeros([NSIDE * 3, NSIDE * 3]) + np.nan
+    prefactor_l = np.zeros([nells, nells]) + np.nan
 
     sum_m = 1/ (2 * ellcl + 1)
 
-    for i in range(int(NSIDE*3)):
+    for i in range(int(nells)):
 
-        prefactor_l[:, i ] = sum_m[i] * np.ones(NSIDE*3)
+        prefactor_l[:, i ] = sum_m[i] * np.ones(nells)
 
     for ii, (i1,i2) in enumerate(zip(indices_tr[0], indices_tr[1])):    
         print(ii)
@@ -113,12 +107,29 @@ def compute_cov():
     hdul_w = fits.HDUList([hdu_w])
     hdul_wt = fits.HDUList([hdu_wt])
 
-    hdul_w.writeto()
-    hdul_wt.writeto()
+    hdul_w.writeto(path_dict['output_path'] + '_'.join([name_run, ctype, 'Cov']) + '_w.fits', overwrite = True)
+    hdul_wt.writeto(path_dict['output_path'] + '_'.join([name_run, ctype, 'Cov']) + '_wt.fits', overwrite = True)
 
 
+def get_effective_cov():
 
+    '''
+    s
+    '''
 
+    hdul_dustw = fits.open(path_dict['output_path'] + '_'.join([name_run, 'dust', 'Cov']) + '_w.fits')
+    hdul_dustwt = fits.open(path_dict['output_path'] + '_'.join([name_run, 'dust', 'Cov']) + '_wt.fits')
+    hdul_all = fits.open(path_dict['output_path'] + '_'.join([name_run, 'all', 'Cov']) + '_w.fits')
+    
+    Cov_dustw = hdul_dustw[0].data
+    Cov_dustwt = hdul_dustwt[0].data
+    Cov_allw = hdul_all[0].data
 
+    total_Cov = np.add(Cov_allw, np.subtract(Cov_dustwt, Cov_dustw))
+
+    hdu_Cov = fits.PrimaryHDU(total_Cov)        
+    hdul_Cov = fits.HDUList([hdu_Cov])
+
+    hdul_Cov.writeto(path_dict['output_path'] + name_run + '_fullCov.fits', overwrite = True)
 
 

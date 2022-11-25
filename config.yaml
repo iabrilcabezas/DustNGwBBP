@@ -1,26 +1,30 @@
 ## all stages
 global:
-    experiment: 'bicep'
+    experiment: 'so'
     machine: 'perl'
-    nside: 256
+    nside: 512
 
 bandpowers:
-    lmin: 10
-    dell: 35
-    nbands: 9
+    lmin: 2
+    dell: 10
+    nbands: 100
     
 mask:
-    mask_type: 'full'
-    apo_deg: .NAN
+    mask_type: 'bicep'
+    apo_deg: 5.
     smooth_deg: 20.
     dell_nmt: 10
-
 
 polarization:
     pol_cov: 'B'
 
 paths:
     output_path: '/global/cfs/cdirs/act/data/iabril/BBPower/pipeline_test/'
+    bicep_BK15: '/global/cfs/cdirs/act/data/iabril/BICEP/'
+    bbpipe_path: '/global/cfs/cdirs/act/software/iabril/condaenvs/github_reps/BBPower/'
+    planck_path_cori: '/global/cscratch1/sd/iabril/PlanckData/'
+    planck_path_perl: '/pscratch/sd/i/iabril/data/PlanckData/'
+    camb_cmb_lens_nobb: '/global/cfs/cdirs/act/software/iabril/condaenvs/github_reps/BBPower/examples/data/camb_lens_nobb.dat'
 
 cosmology:
 

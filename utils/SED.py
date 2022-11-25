@@ -1,28 +1,8 @@
 '''
 SED
 '''
-import yaml
 import numpy as np
-from utils.params import Config
-
-config = Config(yaml.load(open('config.yaml'), yaml.FullLoader))
-
-cosmo_params = config.cosmo_param
-cmb_params = cosmo_params.CMB
-dust_params = cosmo_params.dust
-model_params = cosmo_params.model
-
-A_dust_BB = dust_params['A_dust_BB']
-EB_dust = dust_params['EB_dust']
-alpha_dust_EE = dust_params['alpha_dust_EE']
-alpha_dust_BB = dust_params['alpha_dust_BB']
-beta_dust = dust_params['beta_dust']
-temp_dust = dust_params['temp_dust']
-nu0_dust = dust_params['nu0_dust']
-
-Alens = cmb_params['Alens']
-
-lnorm_PL = model_params['lnorm_PL']
+from utils.params import path_dict, band_names_config, A_dust_BB, EB_dust, alpha_dust_BB, alpha_dust_EE, beta_dust, temp_dust, nu0_dust, Alens, lnorm_PL
 
 def get_band_names(experiment):
 
@@ -37,9 +17,9 @@ def get_band_names(experiment):
     list of band names
     '''
     if experiment == 'so':
-        band_names = config.band_names.so
+        band_names = band_names_config.so
     if experiment == 'bicep':
-        band_names = config.band_names.bicep
+        band_names = band_names_config.bicep
 
     return band_names
 
@@ -103,8 +83,7 @@ def get_component_spectra(lmax):
     dls_dust_ee=dl_plaw(A_dust_BB*EB_dust,alpha_dust_EE,larr_all)
     dls_dust_bb=dl_plaw(A_dust_BB,alpha_dust_BB,larr_all)
     
-    _,dls_cmb_ee,dls_cmb_bb,_=read_camb( '/global/cfs/cdirs/act/software/iabril/condaenvs/github_reps/BBPower/'
-                                         + "./examples/data/camb_lens_nobb.dat", lmax)
+    _,dls_cmb_ee,dls_cmb_bb,_=read_camb( path_dict['camb_cmb_lens_nobb'], lmax)
     
     return (dls_dust_ee, dls_dust_bb,
             dls_cmb_ee, Alens*dls_cmb_bb)

@@ -8,31 +8,20 @@ compute cell
 
 import numpy as np
 import sacc
-import yaml
-from utils.params import pathnames, Config
+from copy import deepcopy
+from astropy.io import fits
+from utils.params import name_run, path_dict, EXPERIMENT, MACHINE, LMIN, DELL, NBANDS, POLARIZATION_cov
 import utils.noise_calc as nc
 from utils.SED import get_band_names, Bpass, get_component_spectra, get_convolved_seds
 from utils.bandpowers import get_ell_arrays, dell2cell_lmax
 
-
-config = Config(yaml.load(open('config.yaml'), yaml.FullLoader))
-
-EXPERIMENT = config.global_param.experiment
-MACHINE = config.global_param.machine
-LMIN = config.bpw_param.lmin
-DELL = config.bpw_param.dell
-NBANDS = config.bpw_param.nbands
-POLARIZATION_cov = config.pol_param.pol_cov
-
 band_names = get_band_names(EXPERIMENT)
-path_dict = dict(pathnames(MACHINE))
 lmax, larr_all, lbands, leff = get_ell_arrays(LMIN, DELL, NBANDS)
 
 nfreqs = len(band_names)
 nmodes = len(POLARIZATION_cov)
 
-#sys.path.append('/global/common/software/act/python/DustNGwBBP')
-# from utils.binning import cut_array, rebin
+ctype_dict_ncomp = {'dust': 1, 'all': 2}
 
 def import_bandpasses():
 
@@ -114,7 +103,7 @@ def add_tracers():
 
     return s_d
 
-def add_powerspectra(s_d, bpw_freq_sig, polarization):
+def add_powerspectra(s_d, bpw_freq_sig, polarization, weight):
 
     '''
     add power spectra to sacc
@@ -122,6 +111,9 @@ def add_powerspectra(s_d, bpw_freq_sig, polarization):
 
     nmaps=nmodes*nfreqs
     indices_tr=np.triu_indices(nmaps)
+    windows = get_windows(weight)
+    s_wins = sacc.BandpowerWindow(larr_all, windows.T)
+
 
     map_names=[]
     for ib in range(nfreqs):
@@ -136,7 +128,7 @@ def add_powerspectra(s_d, bpw_freq_sig, polarization):
         pol1 = map_names[i1][-1].lower()
         pol2 = map_names[i2][-1].lower()
         cl_type = f'cl_{pol1}{pol2}'
-        s_d.add_ell_cl(cl_type, band1, band2, leff, bpw_freq_sig[i1, i2, :])
+        s_d.add_ell_cl(cl_type, band1, band2, leff, bpw_freq_sig[i1, i2, :], window = s_wins)
 
     return s_d
 
@@ -181,22 +173,17 @@ def add_noise(weight, bpw_freq_sig, fsky):
     return bpw_freq_noi
 
 
-def compute_cl_forcov(ctype):
+def compute_cl(ctype, weight, addCov):
 
     '''
     because for cov , weight = 'cl'
     '''
 
-    weight = 'Cl'
-
     bpss = import_bandpasses()
 
     dl2cl = dell2cell_lmax(lmax)
 
-    if ctype == 'dust':
-        ncomp = 1
-    if ctype == 'all':
-        ncomp = 2
+    ncomp = ctype_dict_ncomp[ctype]
 
     dls_comp = np.zeros([ncomp,nmodes,ncomp,nmodes,lmax+1]) #[ncomp,np,ncomp,np,nl]
     dls_sed  = get_component_spectra(lmax)
@@ -219,30 +206,53 @@ def compute_cl_forcov(ctype):
     seds = get_convolved_seds(band_names, bpss)
 
     if ncomp == 1:
-        # seds = np.zeros([1, nfreqs])
-        # seds[0,:] = seds_all[1,:]
+        
         seds = np.array([seds[1,:]])
-    # if ncomp == 2:
-    #     seds = seds_all
 
     bpw_freq_sig = np.einsum('ik,jm,iljno', seds, seds, bpw_comp)
 
     fsky = nc.get_fsky(MACHINE, EXPERIMENT)
 
-    if ctype == 'all':
+    bpw_freq_tot = deepcopy(bpw_freq_sig)
+    bpw_freq_noi = np.zeros_like(bpw_freq_sig)
 
+    if ctype == 'all':
         ## add noise
         bpw_freq_noi = add_noise(weight, bpw_freq_sig, fsky)
-        bpw_freq_sig += bpw_freq_noi
+        bpw_freq_tot += bpw_freq_noi
 
     bpw_freq_sig = bpw_freq_sig.reshape([nfreqs*nmodes,nfreqs*nmodes, NBANDS])
+    bpw_freq_tot = bpw_freq_tot.reshape([nfreqs*nmodes,nfreqs*nmodes, NBANDS])
+    bpw_freq_noi = bpw_freq_noi.reshape([nfreqs*nmodes,nfreqs*nmodes, NBANDS])
 
     # Create sacc and add tracers
     print("Adding tracers")
     s_d = add_tracers()
+    s_f = add_tracers()
+    s_n = add_tracers()
+
 
     # Adding power spectra
     print("Adding spectra")
-    s_d = add_powerspectra(s_d, bpw_freq_sig, POLARIZATION_cov)
+    s_d = add_powerspectra(s_d, bpw_freq_sig, POLARIZATION_cov, weight)
+    s_f = add_powerspectra(s_f, bpw_freq_sig, POLARIZATION_cov, weight)
+    s_n = add_powerspectra(s_n, bpw_freq_noi, POLARIZATION_cov, weight)
 
-    return s_d
+    if addCov:
+
+        ncombs = len(s_d.get_tracer_combinations())
+
+        cov_bpw =  fits.open(path_dict['output_path'] + name_run + '_fullCov.fits')[0].data
+        cov_bpw = cov_bpw.reshape([ncombs * NBANDS, ncombs * NBANDS ])
+        s_d.add_covariance(cov_bpw)
+
+
+    print("Writing")
+    s_d.save_fits(path_dict['output_path'] + '_'.join([name_run, ctype, weight]) + '_tot.fits',\
+                 overwrite = True)
+    s_f.save_fits(path_dict['output_path'] + '_'.join([name_run, ctype, weight]) + '_fid.fits',\
+                 overwrite = True)
+    s_n.save_fits(path_dict['output_path'] + '_'.join([name_run, ctype, weight]) + '_noi.fits',\
+                 overwrite = True)
+
+    return s_d, s_f, s_n
