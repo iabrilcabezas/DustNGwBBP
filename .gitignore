@@ -160,4 +160,4 @@ cython_debug/
 #.idea/
 
 # MY IGNORES:
-./bbpower_input/
+bbpower_input/*
