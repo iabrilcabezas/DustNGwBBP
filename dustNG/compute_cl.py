@@ -173,7 +173,7 @@ def add_noise(weight, bpw_freq_sig, fsky):
     return bpw_freq_noi
 
 
-def compute_cl(ctype, weight, addCov):
+def compute_cl(ctype, weight, addCov, **kwargs_dict):
 
     '''
     because for cov , weight = 'cl'
@@ -228,31 +228,44 @@ def compute_cl(ctype, weight, addCov):
     # Create sacc and add tracers
     print("Adding tracers")
     s_d = add_tracers()
-    s_f = add_tracers()
-    s_n = add_tracers()
-
-
     # Adding power spectra
     print("Adding spectra")
     s_d = add_powerspectra(s_d, bpw_freq_sig, POLARIZATION_cov, weight)
-    s_f = add_powerspectra(s_f, bpw_freq_sig, POLARIZATION_cov, weight)
-    s_n = add_powerspectra(s_n, bpw_freq_noi, POLARIZATION_cov, weight)
+
+
+    if weight == 'Dl':
+        s_f = add_tracers()
+        s_n = add_tracers()
+        s_f = add_powerspectra(s_f, bpw_freq_sig, POLARIZATION_cov, weight)
+        s_n = add_powerspectra(s_n, bpw_freq_noi, POLARIZATION_cov, weight)
 
     if addCov:
 
+        assert (ctype == 'all'), 'adding cov to dust only?'
         ncombs = len(s_d.get_tracer_combinations())
 
-        cov_bpw =  fits.open(path_dict['output_path'] + name_run + '_fullCov.fits')[0].data
+        if kwargs_dict['type_cov'] == 'w':
+            cov_bpw = fits.open(path_dict['output_path'] + '_'.join([name_run, 'all', 'Cov']) +\
+                                 '_w.fits')[0].data
+
+        if kwargs_dict['type_cov'] == 'wt':
+            cov_bpw =  fits.open(path_dict['output_path'] + name_run + \
+                                '_fullCov.fits')[0].data
+
         cov_bpw = cov_bpw.reshape([ncombs * NBANDS, ncombs * NBANDS ])
         s_d.add_covariance(cov_bpw)
 
+    if addCov:
+        weight_name = '_'.join([weight, kwargs_dict['type_cov']])
+    else:
+        weight_name = weight
 
     print("Writing")
-    s_d.save_fits(path_dict['output_path'] + '_'.join([name_run, ctype, weight]) + '_tot.fits',\
-                 overwrite = True)
-    s_f.save_fits(path_dict['output_path'] + '_'.join([name_run, ctype, weight]) + '_fid.fits',\
-                 overwrite = True)
-    s_n.save_fits(path_dict['output_path'] + '_'.join([name_run, ctype, weight]) + '_noi.fits',\
-                 overwrite = True)
+    s_d.save_fits(path_dict['output_path'] + '_'.join([name_run, ctype, weight_name]) + \
+                    '_tot.fits', overwrite = True)
 
-    return s_d, s_f, s_n
+    if weight == 'Dl':
+        s_f.save_fits(path_dict['output_path'] + '_'.join([name_run, ctype, weight_name]) +\
+                     '_fid.fits', overwrite = True)
+        s_n.save_fits(path_dict['output_path'] + '_'.join([name_run, ctype, weight_name]) + \
+                    '_noi.fits', overwrite = True)

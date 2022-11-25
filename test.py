@@ -16,4 +16,9 @@ compute_cov('all')
 
 get_effective_cov()
 
-s_all_Dl = compute_cl('all', 'Dl', True)
+d_w = {'type_cov': 'w'}
+d_wt = {'type_cov': 'wt'}
+
+s_all_Dl_w = compute_cl('all', 'Dl', True , **d_w)
+s_all_Dl_wt = compute_cl('all', 'Dl', True ,**d_wt)
+

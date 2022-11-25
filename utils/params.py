@@ -175,3 +175,5 @@ path_dict = dict(pathnames(MACHINE))
 namerun_dict = {**config.global_param.__dict__, **config.bpw_param.__dict__, \
                 **config.mask_param.__dict__, **config.pol_param.__dict__}
 name_run  = get_namerun(namerun_dict)
+#print(name_run)
+#print(path_dict)
