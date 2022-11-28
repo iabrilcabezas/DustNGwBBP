@@ -7,14 +7,13 @@ import sacc
 from astropy.io import fits
 from utils.params import EXPERIMENT, NBANDS, NSIDE, LMIN, DELL, POLARIZATION_cov, path_dict, name_run
 from utils.SED import get_band_names
-from utils.binning import rebin, cut_array
 from utils.bandpowers import get_ell_arrays
 
 band_names = get_band_names(EXPERIMENT)
 nfreqs = len(band_names)
 nmodes = len(POLARIZATION_cov)
 
-lmax, larr_all, lbands, leff = get_ell_arrays(LMIN, DELL, NBANDS)
+lmax, _, _, _ = get_ell_arrays(LMIN, DELL, NBANDS)
 
 def geo_mean_cl(cl, a, b):
 
@@ -35,19 +34,16 @@ def compute_cov(ctype):
     name_pol_cov = 'cl_' + 2 * POLARIZATION_cov.lower()
     # READ IN CL
 
-    s_d = sacc.Sacc.load_fits(path_dict['output_path'] + '_'.join([name_run, ctype, 'Cl']) + '_tot.fits')
-    mw2_matrix_full = np.loadtxt(path_dict['output_path'] + name_run + '_couplingM_w.txt')
-    mwt2_matrix_full = np.loadtxt(path_dict['output_path'] + name_run + '_couplingM_wt.txt')
+    s_d = sacc.Sacc.load_fits(path_dict['output_path'] + '_'.join([name_run, ctype, 'Cl', str(NSIDE)]) + '_tot.fits')
+    mw2_matrix = np.loadtxt(path_dict['output_path'] + name_run + '_couplingM_w.txt')
+    mwt2_matrix = np.loadtxt(path_dict['output_path'] + name_run + '_couplingM_wt.txt')
 
     # read ell of cls from band1 as there'll always be band1
     ellcl, _ = s_d.get_ell_cl(name_pol_cov, 'band1', 'band1', return_cov = False)
     
-    # cut and bin COV MW matrix:
-    mw2_matrix = rebin(cut_array(mw2_matrix_full, larr_all, LMIN, lmax), [NBANDS, NBANDS])
-    mwt2_matrix = rebin(cut_array(mwt2_matrix_full, larr_all, LMIN, lmax), [NBANDS, NBANDS])
-
     nells = len(ellcl)
-    assert len(ellcl == NBANDS), 'some binning on cl went wrong'
+    assert nells == mw2_matrix.shape[0], 'using matrix or Cl that should not be binned'
+   # assert nells == NBANDS), 'some binning on cl went wrong'
     ncombs = len(s_d.get_tracer_combinations())
 
     assert ncombs == (nmodes*nfreqs) * (nmodes*nfreqs+1) //2,\
@@ -107,8 +103,8 @@ def compute_cov(ctype):
     hdul_w = fits.HDUList([hdu_w])
     hdul_wt = fits.HDUList([hdu_wt])
 
-    hdul_w.writeto(path_dict['output_path'] + '_'.join([name_run, ctype, 'Cov']) + '_w.fits', overwrite = True)
-    hdul_wt.writeto(path_dict['output_path'] + '_'.join([name_run, ctype, 'Cov']) + '_wt.fits', overwrite = True)
+    hdul_w.writeto(path_dict['output_path'] + '_'.join([name_run, ctype, 'Cov']) + '_nobin_w.fits', overwrite = True)
+    hdul_wt.writeto(path_dict['output_path'] + '_'.join([name_run, ctype, 'Cov']) + '_nobin_wt.fits', overwrite = True)
 
 
 def get_effective_cov():
@@ -116,20 +112,23 @@ def get_effective_cov():
     '''
     s
     '''
+    larr_all = np.arange(3 * NSIDE)
 
-    hdul_dustw = fits.open(path_dict['output_path'] + '_'.join([name_run, 'dust', 'Cov']) + '_w.fits')
-    hdul_dustwt = fits.open(path_dict['output_path'] + '_'.join([name_run, 'dust', 'Cov']) + '_wt.fits')
-    hdul_all = fits.open(path_dict['output_path'] + '_'.join([name_run, 'all', 'Cov']) + '_w.fits')
+    hdul_dustw = fits.open(path_dict['output_path'] + '_'.join([name_run, 'dust', 'Cov']) + '_nobin_w.fits')
+    hdul_dustwt = fits.open(path_dict['output_path'] + '_'.join([name_run, 'dust', 'Cov']) + '_nobin_wt.fits')
+    hdul_all = fits.open(path_dict['output_path'] + '_'.join([name_run, 'all', 'Cov']) + '_nobin_w.fits')
     
     Cov_dustw = hdul_dustw[0].data
     Cov_dustwt = hdul_dustwt[0].data
     Cov_allw = hdul_all[0].data
 
-    total_Cov = np.add(Cov_allw, np.subtract(Cov_dustwt, Cov_dustw))
+    assert Cov_dustw.shape[1] == len(larr_all), 'error in ell array definition'
+    
+    total_Cov= np.add(Cov_allw, np.subtract(Cov_dustwt, Cov_dustw))
 
     hdu_Cov = fits.PrimaryHDU(total_Cov)        
     hdul_Cov = fits.HDUList([hdu_Cov])
 
-    hdul_Cov.writeto(path_dict['output_path'] + name_run + '_fullCov.fits', overwrite = True)
+    hdul_Cov.writeto(path_dict['output_path'] + name_run + '_nobin_fullCov.fits', overwrite = True)
 
 

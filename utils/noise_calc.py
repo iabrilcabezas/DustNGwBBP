@@ -46,23 +46,19 @@ def bicep_beams_exp(ell):
     '''
 
     ## beams as a sigma expressed in radians
-    beams_0 = bicep_beams() / np.sqrt(8. * np.log(2)) /60. * np.pi/180. 
+    beams_0 = bicep_beams() / np.sqrt(8. * np.log(2)) /60. * np.pi/180.
 
     return [np.exp(-0.5*ell*(ell+1)*sig**2.) for sig in beams_0]
 
-def bicep_noise(lmin, dell, nbands):
+def bicep_noise(lmax):
 
     '''
     Returns BICEP noise at each (channel [90, 120, 220], ell)
 
     **Parameters**
-    lmin: int
-            minimum ell
-    dell: int
-            ell bin width
-    nbands: int
-            number of ell bandpowers
-
+    lmax: int
+            model calculation up til lmax 
+            
     ** Returns **
     larr_all: np.array()
                 ell noise corresponds to
@@ -70,9 +66,8 @@ def bicep_noise(lmin, dell, nbands):
                 BICEP noise at each (channel, ell)
     '''
 
-    nbands = len(bicep_bands())
+    nfreqs = len(bicep_bands())
 
-    lmax = lmin+nbands*dell # 2+nbands*dell
     larr_all = np.arange(lmax+1)
     larr_noise = larr_all[2:]
 
@@ -80,11 +75,11 @@ def bicep_noise(lmin, dell, nbands):
     sensitivity_mukarcmin = np.array([5.2, 2.9, 26])
 
     arcmin22rad2 = np.pi / 180. / 60.
-    sensitivity_mukrad = (sensitivity_mukarcmin * arcmin22rad2).reshape(nbands, 1)
+    sensitivity_mukrad = (sensitivity_mukarcmin * arcmin22rad2).reshape(nfreqs, 1)
 
     f_knee_pol  = 50.
     alpha_pol   = -2.5
-    noise_0  = (larr_noise / f_knee_pol )**alpha_pol + 1.  
+    noise_0  = (larr_noise / f_knee_pol )**alpha_pol + 1.
     noise =  (sensitivity_mukrad * np.sqrt(2))**2 * noise_0
 
     ## include the impact of the beam
