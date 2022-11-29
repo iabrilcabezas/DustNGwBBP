@@ -14,6 +14,8 @@ def compute_couplingmatrix(**kwargs_dict):
     '''
     Writes to file the coupling matrix (with and without template) for a given mask
 
+    Coupling matrix is squared, of length 3 * NSIDE - 1
+
     ** Parameters **
     machine: str
             machine where code is run ('perl' or 'cori')

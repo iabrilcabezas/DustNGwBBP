@@ -24,7 +24,7 @@ noise_calc
 params
     config file read in and definition of global variables
 
-SED
+sed
     computes component spectra and SEDs
 
 '''

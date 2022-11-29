@@ -1,5 +1,5 @@
 '''
-SED
+sed
     computes component spectra and SEDs
 '''
 
