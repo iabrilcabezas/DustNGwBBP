@@ -1,5 +1,8 @@
 '''
-compute cell
+compute_cl
+    computes c_ell to input into covariance calculation
+    creates sacc files that contain spectrum and covariances
+
 '''
 
 from copy import deepcopy
@@ -7,13 +10,13 @@ import numpy as np
 import sacc
 from astropy.io import fits
 from utils.params import NAME_RUN, PATH_DICT
-from utils.params import EXPERIMENT, MACHINE, NSIDE, LMIN, DELL, NBANDS, POLARIZATION_cov
+from utils.params import EXPERIMENT, NSIDE, LMIN, DELL, NBANDS, POLARIZATION_cov
 import utils.noise_calc as nc
 from utils.binning import rebin, cut_array
 from utils.SED import get_band_names, Bpass, get_component_spectra, get_convolved_seds
 from utils.bandpowers import get_ell_arrays, dell2cell_lmax
 
-band_names = get_band_names(EXPERIMENT)
+band_names = get_band_names()
 LMAX, LARR_ALL, LBANDS, LEFF = get_ell_arrays(LMIN, DELL, NBANDS)
 
 nfreqs = len(band_names)
@@ -274,7 +277,7 @@ def compute_cl(ctype, type_cov):
 
     bpw_freq_sig = np.einsum('ik,jm,iljno', seds, seds, bpw_comp)
 
-    fsky = nc.get_fsky(MACHINE, EXPERIMENT)
+    fsky = nc.get_fsky()
 
     bpw_freq_tot = deepcopy(bpw_freq_sig)
     bpw_freq_noi = np.zeros_like(bpw_freq_sig)
@@ -379,7 +382,7 @@ def compute_cl_nobin(ctype):
 
     bpw_freq_sig = np.einsum('ik,jm,iljno', seds, seds, dls_comp)
 
-    fsky = nc.get_fsky(MACHINE, EXPERIMENT)
+    fsky = nc.get_fsky()
 
     if ctype == 'all':
         ## add noise

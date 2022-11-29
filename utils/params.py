@@ -217,7 +217,8 @@ class Config:
         self.band_names   = BandConfig(param['band_names'])
 
 
-config = Config(yaml.load(open('config.yaml'), yaml.FullLoader))
+with open('config.yaml', 'r', encoding = 'utf-8') as config_file:
+    config = Config(yaml.load(config_file, yaml.FullLoader))
 
 NSIDE   = config.global_param.nside
 MACHINE = config.global_param.machine

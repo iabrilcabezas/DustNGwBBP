@@ -1,15 +1,17 @@
 '''
-
+compute_cov
+    computes covariance matrix as expressed in the Appendix
+    computes effective covariance matrix for final power spectrum
 '''
 
 import numpy as np
 import sacc
 from astropy.io import fits
-from utils.params import EXPERIMENT, NBANDS, NSIDE, LMIN, DELL, POLARIZATION_cov, PATH_DICT, NAME_RUN
+from utils.params import NBANDS, NSIDE, LMIN, DELL, POLARIZATION_cov, PATH_DICT, NAME_RUN
 from utils.SED import get_band_names
 from utils.bandpowers import get_ell_arrays
 
-band_names = get_band_names(EXPERIMENT)
+band_names = get_band_names()
 nfreqs = len(band_names)
 nmodes = len(POLARIZATION_cov)
 

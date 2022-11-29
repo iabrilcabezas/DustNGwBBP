@@ -1,8 +1,13 @@
 '''
 SED
+    computes component spectra and SEDs
 '''
+
 import numpy as np
-from utils.params import PATH_DICT, EXPERIMENT, band_names_config, A_dust_BB, EB_dust, alpha_dust_BB, alpha_dust_EE, beta_dust, temp_dust, nu0_dust, Alens, lnorm_PL
+from utils.params import PATH_DICT, EXPERIMENT, band_names_config
+from utils.params import A_dust_BB, EB_dust, alpha_dust_BB, alpha_dust_EE
+from utils.params import beta_dust, temp_dust, nu0_dust
+from utils.params import Alens, lnorm_PL
 
 def get_band_names():
 
