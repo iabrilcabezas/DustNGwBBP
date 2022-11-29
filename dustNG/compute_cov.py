@@ -5,7 +5,7 @@
 import numpy as np
 import sacc
 from astropy.io import fits
-from utils.params import EXPERIMENT, NBANDS, NSIDE, LMIN, DELL, POLARIZATION_cov, path_dict, name_run
+from utils.params import EXPERIMENT, NBANDS, NSIDE, LMIN, DELL, POLARIZATION_cov, PATH_DICT, NAME_RUN
 from utils.SED import get_band_names
 from utils.bandpowers import get_ell_arrays
 
@@ -34,9 +34,9 @@ def compute_cov(ctype):
     name_pol_cov = 'cl_' + 2 * POLARIZATION_cov.lower()
     # READ IN CL
 
-    s_d = sacc.Sacc.load_fits(path_dict['output_path'] + '_'.join([name_run, ctype, 'Cl', str(NSIDE)]) + '_tot.fits')
-    mw2_matrix = np.loadtxt(path_dict['output_path'] + name_run + '_couplingM_w.txt')
-    mwt2_matrix = np.loadtxt(path_dict['output_path'] + name_run + '_couplingM_wt.txt')
+    s_d = sacc.Sacc.load_fits(PATH_DICT['output_path'] + '_'.join([NAME_RUN, ctype, 'Cl', str(NSIDE)]) + '_tot.fits')
+    mw2_matrix = np.loadtxt(PATH_DICT['output_path'] + NAME_RUN + '_couplingM_w.txt')
+    mwt2_matrix = np.loadtxt(PATH_DICT['output_path'] + NAME_RUN + '_couplingM_wt.txt')
 
     # read ell of cls from band1 as there'll always be band1
     ellcl, _ = s_d.get_ell_cl(name_pol_cov, 'band1', 'band1', return_cov = False)
@@ -103,8 +103,8 @@ def compute_cov(ctype):
     hdul_w = fits.HDUList([hdu_w])
     hdul_wt = fits.HDUList([hdu_wt])
 
-    hdul_w.writeto(path_dict['output_path'] + '_'.join([name_run, ctype, 'Cov']) + '_nobin_w.fits', overwrite = True)
-    hdul_wt.writeto(path_dict['output_path'] + '_'.join([name_run, ctype, 'Cov']) + '_nobin_wt.fits', overwrite = True)
+    hdul_w.writeto(PATH_DICT['output_path'] + '_'.join([NAME_RUN, ctype, 'Cov']) + '_nobin_w.fits', overwrite = True)
+    hdul_wt.writeto(PATH_DICT['output_path'] + '_'.join([NAME_RUN, ctype, 'Cov']) + '_nobin_wt.fits', overwrite = True)
 
 
 def get_effective_cov():
@@ -114,9 +114,9 @@ def get_effective_cov():
     '''
     larr_all = np.arange(3 * NSIDE)
 
-    hdul_dustw = fits.open(path_dict['output_path'] + '_'.join([name_run, 'dust', 'Cov']) + '_nobin_w.fits')
-    hdul_dustwt = fits.open(path_dict['output_path'] + '_'.join([name_run, 'dust', 'Cov']) + '_nobin_wt.fits')
-    hdul_all = fits.open(path_dict['output_path'] + '_'.join([name_run, 'all', 'Cov']) + '_nobin_w.fits')
+    hdul_dustw = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_RUN, 'dust', 'Cov']) + '_nobin_w.fits')
+    hdul_dustwt = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_RUN, 'dust', 'Cov']) + '_nobin_wt.fits')
+    hdul_all = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_RUN, 'all', 'Cov']) + '_nobin_w.fits')
     
     Cov_dustw = hdul_dustw[0].data
     Cov_dustwt = hdul_dustwt[0].data
@@ -129,6 +129,6 @@ def get_effective_cov():
     hdu_Cov = fits.PrimaryHDU(total_Cov)        
     hdul_Cov = fits.HDUList([hdu_Cov])
 
-    hdul_Cov.writeto(path_dict['output_path'] + name_run + '_nobin_fullCov.fits', overwrite = True)
+    hdul_Cov.writeto(PATH_DICT['output_path'] + NAME_RUN + '_nobin_fullCov.fits', overwrite = True)
 
 

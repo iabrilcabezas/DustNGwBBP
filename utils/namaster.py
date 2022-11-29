@@ -1,5 +1,6 @@
 '''
 namaster
+    pymaster package routines
 '''
 
 import numpy as np
@@ -7,7 +8,7 @@ import healpy as hp
 import pymaster as nmt
 from astropy import units as u
 from astropy.coordinates import SkyCoord
-from utils.params import pathnames
+from utils.params import PATH_DICT
 
 def get_bandpowers(nside, width_ell):
 
@@ -125,7 +126,7 @@ def get_mask(nside, mtype, **kwargs):
     return None
 
 
-def get_template_wmask(machine, nside, mtype, **kwargs):
+def get_template_wmask(nside, mtype, **kwargs):
 
     '''
     Obtains modulating template. Constructed from Appendix A instructions
@@ -148,10 +149,8 @@ def get_template_wmask(machine, nside, mtype, **kwargs):
             mask
     '''
 
-    path_dict = dict(pathnames(machine))
-
     # map from which to create anisotropic correlated template
-    p353 = hp.read_map(path_dict['planck_data']+"HFI_SkyMap_353-psb-field-IQU_2048_R3.00_full.fits")
+    p353 = hp.read_map(PATH_DICT['planck_data']+"HFI_SkyMap_353-psb-field-IQU_2048_R3.00_full.fits")
     p353_hi = hp.ud_grade(p353, nside)
     # create large-scale modulating template by smoothing 353 map
     template_0 = hp.smoothing(p353_hi, fwhm=np.deg2rad(kwargs['smooth_deg']))

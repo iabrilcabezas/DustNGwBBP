@@ -1,19 +1,18 @@
 '''
 params
+    config file read in and definition of global variables
+
 '''
 import yaml
-
 
 def get_namerun(kwargs_dict):
 
     '''
-    Returns string that contains all arguments used in the code run
+    Converts to string the input dictionary
 
     ** Parameters **
     kwargs_dict: dict
-            'width_l'
-            'apo_deg'
-            'smooth_deg'
+        dictionary to be converted to string
 
     ** Returns **
     str
@@ -21,7 +20,7 @@ def get_namerun(kwargs_dict):
 
     return '_'.join(map(str, kwargs_dict.values()))
 
-def pathnames(machine):
+def pathnames():
 
     '''
     Returns path to data depending on machine
@@ -30,27 +29,29 @@ def pathnames(machine):
     machine: str
             machine where code runs ('cori' or 'perl')
 
-    **Returns**
-    dict
-        stores path to data
+    ** Returns **
+    dict: stores path to data
         'planck_path': Planck data
+        'camb_cmb_lens_nobb': CMB power spectrum, including lensing, without bb
+        'output_path': location of file output storage
+        'BK15_data': BK15 data (bandpasses, noise)
+        'bbpipe_path': path to bbpower code. contains SO bandpasses and noise in examples folder
     '''
-    config_load = Config(yaml.load(open('config.yaml'), yaml.FullLoader))
 
     dict_path = {}
 
-    bicep_bk15 = config_load.path_param.bicep_bk15
-    bbpipe_path = config_load.path_param.bbpipe
-    output_path = config_load.path_param.output
-    camb_cmb_lens_nobb_path = config_load.path_param.camb_cmb_lens_nobb
+    bicep_bk15 = config.path_param.bicep_bk15
+    bbpipe_path = config.path_param.bbpipe
+    output_path = config.path_param.output
+    camb_cmb_lens_nobb_path = config.path_param.camb_cmb_lens_nobb
 
-    if machine == 'cori':
+    if MACHINE == 'cori':
 
-        dict_path['planck_data'] = config_load.path_param.planck_path_cori
+        dict_path['planck_data'] = config.path_param.planck_path_cori
 
-    if machine == 'perl':
+    if MACHINE == 'perl':
 
-        dict_path['planck_data'] = config_load.path_param.planck_path_perl
+        dict_path['planck_data'] = config.path_param.planck_path_perl
 
     dict_path['BK15_data']   = bicep_bk15
     dict_path['bbpipe_path'] = bbpipe_path
@@ -60,17 +61,38 @@ def pathnames(machine):
     return dict_path
 
 class GlobalConfig:
+
     '''
-    doc
+    2nd level class info on config file
+    contains global config parameters
+
+    machine: 'cori' or 'perl'
+        machine where the code runs
+    experiment: 'so' or 'bicep'
+        experiment we simulate
+    nside: 2**N
+        resolution of maps
+
     '''
+
     def __init__(self, param):
         self.machine    = param['machine']
         self.experiment = param['experiment']
         self.nside      = param['nside']
 
 class BpwConfig:
+
     '''
-    a
+    2nd level class info on config file
+    contains bandpower parameters
+
+    lmin: int
+        min ell
+    nbands: int
+        number of ell bands
+    dell: int
+        width of ell bands
+
     '''
     def __init__(self, param):
         self.lmin = param['lmin']
@@ -78,16 +100,38 @@ class BpwConfig:
         self.dell = param['dell']
 
 class PolConfig:
+
     '''
-    a
+    2nd level class info of config file
+    contains polarization parameters
+
+    pol_cov: 'E', 'B' or 'EB'
+        polarization channels to use
+
     '''
     def __init__(self, param):
         self.pol_cov = param['pol_cov']
 
 class PathConfig:
+
     '''
-    a
+    2nd level class of config file
+    contains path info
+
+    output: str
+        path to location of file output storage
+    bicep_bk15: str
+        path to BK15 data (bandpasses, noise)
+    bbpipe: str
+        path to bbpower code
+    planck_path_cori: str
+        path to Planck data on cori machine
+    planck_path_perl: str
+        path to Planck data on perl machine
+    camb_cmb_lens_nobb: str
+        CMB power spectrum, including lensing, without bb
     '''
+
     def __init__(self, param):
         self.output = param['output_path']
         self.bicep_bk15 = param['bicep_BK15']
@@ -97,9 +141,20 @@ class PathConfig:
         self.camb_cmb_lens_nobb = param['camb_cmb_lens_nobb']
 
 class MaskConfig:
+
     '''
-    a
+    2nd level class of config file
+    contains info on mask_param
+        mask_type: str
+            type of mask
+        apo_deg: float
+            apodization scale of mask [degrees]
+        smooth_deg: float
+            smoothing scale of template [degrees]
+        dell_nmt: int
+            width of ell bins in namaster
     '''
+
     def __init__(self, param):
         self.mask_type  = param['mask_type']
         self.apo_deg    = param['apo_deg']
@@ -110,8 +165,13 @@ class MaskConfig:
 class CosmoConfig:
 
     '''
-    a
+    2nd level class of config file
+    contains info on cosmo_params
+        CMB: CMB parametrization
+        dust: dust parametrization
+        model: model parameters
     '''
+
     def __init__(self, param):
         self.CMB = param['CMB']
         self.dust = param['dust']
@@ -120,17 +180,33 @@ class CosmoConfig:
 class BandConfig:
 
     '''
-    bandnames
+    2nd level class of config file
+    contains info on band_names
+    so: list
+        so band names
+    bicep: list
+        bicep band names
     '''
-    
+
     def __init__(self, param):
         self.so = param['SO']
         self.bicep = param['BICEP']
 
 class Config:
+
     '''
-    a
+    1st level class for config file
+
+    global_param: global parameters
+    bpw_param: bandpower parameters
+    pol_param: polarization parameters
+    path_param: path to files
+    mask_param: mask parameters
+    cosmo_param: parameters on CMB and dust P(k)
+    band_names: name of bands for different experiments
+
     '''
+
     def __init__(self, param):
         self.global_param = GlobalConfig(param['global'])
         self.bpw_param    = BpwConfig(param['bandpowers'])
@@ -170,10 +246,12 @@ nu0_dust = dust_params['nu0_dust']
 Alens = cmb_params['Alens']
 lnorm_PL = model_params['lnorm_PL']
 
-path_dict = dict(pathnames(MACHINE))
+PATH_DICT = dict(pathnames())
 
 namerun_dict = {**config.global_param.__dict__, **config.bpw_param.__dict__, \
                 **config.mask_param.__dict__, **config.pol_param.__dict__}
-name_run  = get_namerun(namerun_dict)
+
+NAME_RUN  = get_namerun(namerun_dict)
+
 #print(name_run)
 #print(path_dict)

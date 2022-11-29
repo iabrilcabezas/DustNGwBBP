@@ -1,5 +1,6 @@
 '''
 binning
+    binning and slicing of 1- and 2-D arrays
 '''
 
 import numpy as np

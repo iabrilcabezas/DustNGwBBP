@@ -1,5 +1,7 @@
 '''
-ell stuff
+bandpowers
+    defines ell binning and Cl to Dl transformations
+
 '''
 
 import numpy as np
@@ -7,7 +9,25 @@ import numpy as np
 def get_ell_arrays(lmin, dell, nbands):
 
     '''
-    ell arrays from parameters
+    Retunrns ell array products
+
+    ** Parameters **
+    lmin: int
+        starting ell
+    dell: int
+        spacing of ell bands
+    nbands: int
+        number of ell bands
+
+    ** Returns **
+    lmax: int
+        maximum ell
+    larr_all: np.array()
+        ell array from ell = 0 to ell = lmax (step = 1)
+    lbands: np.array()
+        ell edges of each band
+    leff: np.array()
+        effective ell of each band
     '''
 
     lmax = lmin + dell * nbands
@@ -20,11 +40,16 @@ def get_ell_arrays(lmin, dell, nbands):
 def dell2cell_lmax(lmax):
 
     '''
-    standard conversion Dell to Cell of ell array 0, ... , lmax
+    Returns conversion factor from D_ell to C_ell for ell = 0, 1, ..., lmax
 
     **Parameters**
     lmax: int
+        Maximum ell of array
     '''
+
+    if not isinstance(lmax, int):
+        print("non-integer input given to function dell2cell_lmax; num="+str(lmax))
+        return 0
 
     ell = np.arange(lmax + 1)
 

@@ -1,12 +1,12 @@
 '''
 noise_calc
+    noise, beams, bands definition for the experiments
+
+Note these functions have loads of hard coded values e.g. beams, fsky, sensitivites, ...
 '''
 
-from __future__ import print_function
 import numpy as np
-
-
-from utils.params import pathnames
+from utils.params import PATH_DICT, EXPERIMENT
 
 
 def bicep_bands():
@@ -57,11 +57,12 @@ def bicep_noise(lmax):
 
     **Parameters**
     lmax: int
-            model calculation up til lmax 
-            
+            model calculation up til lmax
+
     ** Returns **
     larr_all: np.array()
-                ell noise corresponds to
+                which ell each `noise` corresponds to.
+                starts from ell = 2, till ell = lmax
     noise: np.array()
                 BICEP noise at each (channel, ell)
     '''
@@ -84,19 +85,14 @@ def bicep_noise(lmax):
 
     ## include the impact of the beam
     bicep_beams_array = np.array(bicep_beams_exp(larr_noise))
-
     noise /= bicep_beams_array**2
 
     return (larr_noise, noise)
 
-def bicep_noise_fromfile(machine):
+def bicep_noise_fromfile():
 
     '''
     Returns noise N_ell of BICEP. Provided in noise file BK15_Nl_fsky_20181102.txt
-
-    ** Parameters **
-    machine: str
-                machine where code is run 'perl', 'cori'
 
     Returns
     ell: np.array()
@@ -106,9 +102,7 @@ def bicep_noise_fromfile(machine):
 
     '''
 
-    path_dict = dict(pathnames(machine))
-
-    ell, n95, n150, n220 = np.loadtxt(path_dict['BK15_data'] + 'BK15_Nl_fsky_20181102.txt',
+    ell, n95, n150, n220 = np.loadtxt(PATH_DICT['BK15_data'] + 'BK15_Nl_fsky_20181102.txt',
                                          usecols=(1,3,6,9), unpack = True)
 
     noise = np.array([n95, n150, n220])
@@ -116,14 +110,10 @@ def bicep_noise_fromfile(machine):
     return (ell, noise)
 
 
-def fsky_fromnoise(machine):
+def fsky_fromnoise():
 
     '''
     Returns fsky value of BICEP. This is provided in noise file BK15_Nl_fsky_20181102.txt
-
-    ** Parameters **
-    machine: str
-            machine where code is run 'perl', 'cori'
 
     Returns
     ell: np.array()
@@ -132,32 +122,31 @@ def fsky_fromnoise(machine):
             ell x channels. fsky at each (channel, ell)
     '''
 
-    path_dict = dict(pathnames(machine))
-
-    ell, f95, f150, f220 = np.loadtxt(path_dict['BK15_data']  + 'BK15_Nl_fsky_20181102.txt',
+    ell, f95, f150, f220 = np.loadtxt(PATH_DICT['BK15_data']  + 'BK15_Nl_fsky_20181102.txt',
                                          usecols=(1,5,8,11), unpack = True)
 
     fsky = np.array([f95, f150, f220])
 
     return (ell, fsky)
 
-def get_fsky(machine, experiment):
+def get_fsky():
 
     '''
     return fsky
     '''
 
-    if experiment == 'bicep':
+    if EXPERIMENT == 'bicep':
 
-        fsky = np.mean(fsky_fromnoise(machine)[1])
+        fsky = np.mean(fsky_fromnoise()[1])
 
-    if experiment == 'so':
+    if EXPERIMENT == 'so':
 
         fsky = 0.1
 
     return fsky
 
 
+####### copied from https://github.com/simonsobs/V3_calc
 
 def Simons_Observatory_V3_SA_bands():
     ## returns the band centers in GHz for a CMB spectrum

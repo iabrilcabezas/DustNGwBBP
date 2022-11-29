@@ -2,15 +2,12 @@
 compute cell
 '''
 
-#import sys
-
-#sys.path.append('/global/common/software/act/python/DustNGwBBP')
-
+from copy import deepcopy
 import numpy as np
 import sacc
-from copy import deepcopy
 from astropy.io import fits
-from utils.params import name_run, path_dict, EXPERIMENT, MACHINE, NSIDE, LMIN, DELL, NBANDS, POLARIZATION_cov
+from utils.params import NAME_RUN, PATH_DICT
+from utils.params import EXPERIMENT, MACHINE, NSIDE, LMIN, DELL, NBANDS, POLARIZATION_cov
 import utils.noise_calc as nc
 from utils.binning import rebin, cut_array
 from utils.SED import get_band_names, Bpass, get_component_spectra, get_convolved_seds
@@ -31,10 +28,10 @@ def import_bandpasses():
     '''
 
     if EXPERIMENT == 'bicep':
-        bpss = {n: Bpass(n, path_dict['BK15_data'] +\
+        bpss = {n: Bpass(n, PATH_DICT['BK15_data'] +\
                              f'BK15_{n}_bandpass_20180920.txt') for n in band_names}
     if EXPERIMENT == 'so':
-        bpss = {n: Bpass(n,path_dict['bbpipe_path'] +\
+        bpss = {n: Bpass(n,PATH_DICT['bbpipe_path'] +\
                              f'examples/data/bandpasses/{n}.txt') for n in band_names}
 
     return bpss
@@ -46,9 +43,11 @@ def import_beams(ell_array):
     '''
 
     if EXPERIMENT == 'bicep':
-        beams ={band_names[i]: b for i, b in enumerate(nc.bicep_beams_exp(ell_array))}
+        beams ={band_names[i]: b for i, b in \
+                    enumerate(nc.bicep_beams_exp(ell_array))}
     if EXPERIMENT == 'so':
-        beams ={band_names[i]: b for i, b in enumerate(nc.Simons_Observatory_V3_SA_beams(ell_array))}
+        beams ={band_names[i]: b for i, b in \
+                    enumerate(nc.Simons_Observatory_V3_SA_beams(ell_array))}
 
     return beams
 
@@ -319,11 +318,11 @@ def compute_cl(ctype, type_cov):
     #         cov_bpw[ii, :, jj, :] = np.diag(covar)
 
     if type_cov == 'w':
-        cov_bpw_full = fits.open(path_dict['output_path'] + '_'.join([name_run, 'all', 'Cov']) +\
+        cov_bpw_full = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_RUN, 'all', 'Cov']) +\
                              '_nobin_w.fits')[0].data
 
     if type_cov == 'wt':
-        cov_bpw_full =  fits.open(path_dict['output_path'] + name_run + \
+        cov_bpw_full =  fits.open(PATH_DICT['output_path'] + NAME_RUN + \
                             '_nobin_fullCov.fits')[0].data
     
     # cut and bin COV MW matrix:
@@ -335,12 +334,12 @@ def compute_cl(ctype, type_cov):
     s_d.add_covariance(cov_bpw)
 
     print("Writing")
-    s_d.save_fits(path_dict['output_path'] + '_'.join([name_run, ctype, weight_name]) + \
+    s_d.save_fits(PATH_DICT['output_path'] + '_'.join([NAME_RUN, ctype, weight_name]) + \
                     '_tot.fits', overwrite = True)
 
-    s_f.save_fits(path_dict['output_path'] + '_'.join([name_run, ctype, weight_name]) +\
+    s_f.save_fits(PATH_DICT['output_path'] + '_'.join([NAME_RUN, ctype, weight_name]) +\
                      '_fid.fits', overwrite = True)
-    s_n.save_fits(path_dict['output_path'] + '_'.join([name_run, ctype, weight_name]) + \
+    s_n.save_fits(PATH_DICT['output_path'] + '_'.join([NAME_RUN, ctype, weight_name]) + \
                     '_noi.fits', overwrite = True)
 
 
@@ -397,6 +396,6 @@ def compute_cl_nobin(ctype):
     s_d = add_powerspectra_nobin(s_d, bpw_freq_sig, POLARIZATION_cov, larr_all)
 
     print("Writing")
-    s_d.save_fits(path_dict['output_path'] + '_'.join([name_run, ctype, weight, str(NSIDE)]) + \
+    s_d.save_fits(PATH_DICT['output_path'] + '_'.join([NAME_RUN, ctype, weight, str(NSIDE)]) + \
                     '_tot.fits', overwrite = True)
  

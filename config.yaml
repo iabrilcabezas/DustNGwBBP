@@ -1,13 +1,13 @@
 ## all stages
 global:
-    experiment: 'bicep'
+    experiment: 'so'
     machine: 'perl'
-    nside: 256
+    nside: 512
 
 bandpowers:
-    lmin: 20
-    dell: 35
-    nbands: 9
+    lmin: 2
+    dell: 10
+    nbands: 100
     
 mask:
     mask_type: 'full'
