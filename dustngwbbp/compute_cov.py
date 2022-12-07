@@ -32,7 +32,7 @@ def compute_cov(ctype):
         type of power spectrum
     '''
 
-    assert len(POLARIZATION_cov == 1), 'covariance formula is for spin 0 field only!'
+    assert len(POLARIZATION_cov) == 1, 'covariance formula is for spin 0 field only!'
     name_pol_cov = 'cl_' + 2 * POLARIZATION_cov.lower()
 
     # READ IN CL
@@ -42,8 +42,10 @@ def compute_cov(ctype):
     mw2_matrix = np.loadtxt(PATH_DICT['output_path'] + NAME_RUN + '_couplingM_w.txt')
     mwt2_matrix = np.loadtxt(PATH_DICT['output_path'] + NAME_RUN + '_couplingM_wt.txt')
 
+    tr_names = sorted(list(s_d.tracers.keys()))
+
     # read ell of cls from band1 as there'll always be band1
-    ellcl, _ = s_d.get_ell_cl(name_pol_cov, 'band1', 'band1', return_cov = False)
+    ellcl, _ = s_d.get_ell_cl(name_pol_cov, tr_names[0], tr_names[0], return_cov = False)
 
     nells = len(ellcl)
     assert nells == mw2_matrix.shape[0], 'using matrix or Cl that should not be binned'
