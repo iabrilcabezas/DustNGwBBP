@@ -259,7 +259,7 @@ def compute_cl(ctype, type_cov):
     '''
     because for cov , weight = 'cl'
     '''
-    weight = 'Dl'
+    weight = 'Cl'
     weight_name = '_'.join([weight, type_cov])
 
     bpss = import_bandpasses()
@@ -298,10 +298,10 @@ def compute_cl(ctype, type_cov):
     bpw_freq_tot = deepcopy(bpw_freq_sig)
     bpw_freq_noi = np.zeros_like(bpw_freq_sig)
 
-    if ctype == 'all':
-        ## add noise
-        bpw_freq_noi = add_noise(weight, bpw_freq_sig, fsky)
-        bpw_freq_tot += bpw_freq_noi
+    # if ctype == 'all':
+    #     ## add noise
+    #     bpw_freq_noi = add_noise(weight, bpw_freq_sig, fsky)
+    #     bpw_freq_tot += bpw_freq_noi
 
     bpw_freq_sig = bpw_freq_sig.reshape([nfreqs*nmodes,nfreqs*nmodes, NBANDS])
     bpw_freq_tot = bpw_freq_tot.reshape([nfreqs*nmodes,nfreqs*nmodes, NBANDS])
@@ -354,12 +354,12 @@ def compute_cl(ctype, type_cov):
 
     print("Writing")
     s_d.save_fits(PATH_DICT['output_path'] + '_'.join([NAME_RUN, ctype, weight_name]) + \
-                    '_tot.fits', overwrite = True)
+                    '_nonoise_tot.fits', overwrite = True)
 
     s_f.save_fits(PATH_DICT['output_path'] + '_'.join([NAME_RUN, ctype, weight_name]) +\
-                     '_fid.fits', overwrite = True)
+                     '_nonoise_fid.fits', overwrite = True)
     s_n.save_fits(PATH_DICT['output_path'] + '_'.join([NAME_RUN, ctype, weight_name]) + \
-                    '_noi.fits', overwrite = True)
+                    '_nonoise_noi.fits', overwrite = True)
 
 
 def compute_cl_nobin(ctype):

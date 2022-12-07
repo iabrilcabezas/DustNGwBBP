@@ -254,5 +254,5 @@ namerun_dict = {**config.global_param.__dict__, **config.bpw_param.__dict__, \
 
 NAME_RUN  = get_namerun(namerun_dict)
 
-#print(name_run)
-#print(path_dict)
+# print(NAME_RUN)
+# print(PATH_DICT)
