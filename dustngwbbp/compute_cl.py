@@ -293,15 +293,15 @@ def compute_cl(ctype, type_cov):
 
     bpw_freq_sig = np.einsum('ik,jm,iljno', seds, seds, bpw_comp)
 
-    fsky = nc.get_fsky()
+    fsky = 1. # mask = full, nc.get_fsky()
 
     bpw_freq_tot = deepcopy(bpw_freq_sig)
     bpw_freq_noi = np.zeros_like(bpw_freq_sig)
 
-    # if ctype == 'all':
-    #     ## add noise
-    #     bpw_freq_noi = add_noise(weight, bpw_freq_sig, fsky)
-    #     bpw_freq_tot += bpw_freq_noi
+    if ctype == 'all':
+        ## add noise
+        bpw_freq_noi = add_noise(weight, bpw_freq_sig, fsky)
+        bpw_freq_tot += bpw_freq_noi
 
     bpw_freq_sig = bpw_freq_sig.reshape([nfreqs*nmodes,nfreqs*nmodes, NBANDS])
     bpw_freq_tot = bpw_freq_tot.reshape([nfreqs*nmodes,nfreqs*nmodes, NBANDS])
@@ -354,12 +354,12 @@ def compute_cl(ctype, type_cov):
 
     print("Writing")
     s_d.save_fits(PATH_DICT['output_path'] + '_'.join([NAME_RUN, ctype, weight_name]) + \
-                    '_nonoise_tot.fits', overwrite = True)
+                    '_tot.fits', overwrite = True)
 
     s_f.save_fits(PATH_DICT['output_path'] + '_'.join([NAME_RUN, ctype, weight_name]) +\
-                     '_nonoise_fid.fits', overwrite = True)
+                     '_fid.fits', overwrite = True)
     s_n.save_fits(PATH_DICT['output_path'] + '_'.join([NAME_RUN, ctype, weight_name]) + \
-                    '_nonoise_noi.fits', overwrite = True)
+                    '_noi.fits', overwrite = True)
 
 
 def compute_cl_nobin(ctype):
@@ -397,7 +397,7 @@ def compute_cl_nobin(ctype):
 
     bpw_freq_sig = np.einsum('ik,jm,iljno', seds, seds, dls_comp)
 
-    fsky = nc.get_fsky()
+    fsky = 1. # mask = full, nc.get_fsky()
 
     if ctype == 'all':
         ## add noise
