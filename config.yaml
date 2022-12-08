@@ -1,18 +1,18 @@
 ## all stages
 global:
-    experiment: 'bicep'
+    experiment: 'so'
     machine: 'perl'
     nside: 256
 
 bandpowers:
-    lmin: 20
-    dell: 35
-    nbands: 9
+    lmin: 2
+    dell: 10
+    nbands: 6
     
 mask:
     mask_type: 'full'
     apo_deg: .NAN
-    smooth_deg: 20.
+    smooth_deg: 40.
     dell_nmt: 10
 
 polarization:
