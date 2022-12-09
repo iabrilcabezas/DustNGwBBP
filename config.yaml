@@ -7,12 +7,12 @@ global:
 bandpowers:
     lmin: 2
     dell: 10
-    nbands: 6
+    nbands: 50
     
 mask:
     mask_type: 'full'
     apo_deg: .NAN
-    smooth_deg: 40.
+    smooth_deg: 5.
     dell_nmt: 10
 
 polarization:
