@@ -6,11 +6,11 @@ bbpw_script
 import yaml
 from utils.params import PATH_DICT, NAME_RUN
 
-
 def write_config_yml_script(type_cov, nside_bbpw):
 
     '''
     Writes .yml file used by BBPower in BBCompSep (no plotting!)
+    Only interested in B- polarization channel
 
     * Parameters *
     type_cov: 'w' or 'wt'

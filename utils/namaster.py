@@ -95,7 +95,8 @@ def get_mask(nside, mtype, **kwargs):
         w_bicep = np.zeros(npix)
 
         # join three triangles to create bicep-like mask
-        # coordinates in (RA, DEC) taken from Fig. 4 https://arxiv.org/pdf/2210.05684.pdf. region amplify to recover fsky bicep (0.014) after apodization
+        # coordinates in (RA, DEC) taken from Fig. 4 https://arxiv.org/pdf/2210.05684.pdf.
+        # the region amplify to recover fsky bicep (0.014) after apodization
         radecs = [[[-60, -75], [60, -75], [0, -35]],
                 [[60, -35],  [60, -75], [-1, -35]],
                 [[-60, -35], [-60, -75], [1, -35]]]

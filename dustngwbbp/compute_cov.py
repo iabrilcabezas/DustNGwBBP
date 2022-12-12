@@ -26,6 +26,8 @@ def compute_cov(ctype):
     This is because coupling matrix is given in that shape. and binning of covariance is only
     linear once the final covariance has been calculated (cannot bin elements first)
 
+    Formula for the covariance is given in the Appendix
+
     ** Parameters **
 
     ctype: 'dust' or 'all'
@@ -35,16 +37,17 @@ def compute_cov(ctype):
     assert len(POLARIZATION_cov) == 1, 'covariance formula is for spin 0 field only!'
     name_pol_cov = 'cl_' + 2 * POLARIZATION_cov.lower()
 
-    # READ IN CL
+    # read in cells
     s_d = sacc.Sacc.load_fits(PATH_DICT['output_path'] + \
                                 '_'.join([NAME_RUN, ctype, 'Cl', str(NSIDE)]) +\
                                 '_tot.fits')
+    # read-in coupling matrices
     mw2_matrix = np.loadtxt(PATH_DICT['output_path'] + NAME_RUN + '_couplingM_w.txt')
     mwt2_matrix = np.loadtxt(PATH_DICT['output_path'] + NAME_RUN + '_couplingM_wt.txt')
 
     tr_names = sorted(list(s_d.tracers.keys()))
 
-    # read ell of cls from band1 as there'll always be band1
+    # read ell of cls from the first band (tr_names)
     ellcl, _ = s_d.get_ell_cl(name_pol_cov, tr_names[0], tr_names[0], return_cov = False)
 
     nells = len(ellcl)

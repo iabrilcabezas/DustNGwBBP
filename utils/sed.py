@@ -84,7 +84,7 @@ class Bpass:
     '''bandpass class object'''
     def __init__(self,name,fname):
         self.name = name
-        self.nu,self.bnu = np.loadtxt(fname, usecols = (0,1), unpack= True) 
+        self.nu,self.bnu = np.loadtxt(fname, usecols = (0,1), unpack= True)
         self.dnu = np.zeros_like(self.nu)
         self.dnu[1:] = np.diff(self.nu)
         self.dnu[0] = self.dnu[1]

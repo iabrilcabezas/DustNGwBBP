@@ -41,6 +41,7 @@ def dell2cell_lmax(lmax):
 
     '''
     Returns conversion factor from D_ell to C_ell for ell = 0, 1, ..., lmax
+    D_ell = ell * (ell + 1) / 2pi * C_ell
 
     **Parameters**
     lmax: int
@@ -55,6 +56,7 @@ def dell2cell_lmax(lmax):
 
     cl2dl=ell*(ell+1)/(2*np.pi)
     dl2cl=np.zeros_like(cl2dl)
+    # ell = 0 is ill-defined
     dl2cl[1:] = 1/(cl2dl[1:])
 
     return dl2cl
