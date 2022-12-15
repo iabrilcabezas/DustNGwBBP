@@ -33,7 +33,7 @@ def import_bandpasses():
     if EXPERIMENT == 'bicep':
         bpss = {n: Bpass(n, PATH_DICT['BK15_data'] +\
                              f'BK15_{n}_bandpass_20180920.txt') for n in band_names}
-    if EXPERIMENT == 'so':
+    if EXPERIMENT in ['so','cmbs4']:
         bpss = {n: Bpass(n,PATH_DICT['bbpipe_path'] +\
                              f'examples/data/bandpasses/{n}.txt') for n in band_names}
 
@@ -52,7 +52,7 @@ def import_beams(ell_array):
     if EXPERIMENT == 'bicep':
         beams ={band_names[i]: b for i, b in \
                     enumerate(nc.bicep_beams_exp(ell_array))}
-    if EXPERIMENT == 'so':
+    if EXPERIMENT in ['so','cmbs4']:
         beams ={band_names[i]: b for i, b in \
                     enumerate(nc.Simons_Observatory_V3_SA_beams(ell_array))}
 
@@ -207,6 +207,17 @@ def add_noise(weight, bpw_freq_sig, fsky):
         nell=np.zeros([nfreqs,LMAX+1])
         _,nell[:,2:],_=nc.Simons_Observatory_V3_SA_noise(sens,knee,ylf,fsky,LMAX+1,1)
         n_bpw=np.sum(nell[:,None,:]*windows[None,:,:],axis=2)
+    
+    if EXPERIMENT == 'cmbs4':
+
+        # N_ell
+        sens=2
+        knee=1
+        ylf=1
+        nell=np.zeros([nfreqs,LMAX+1])
+        _,nell[:,2:],_=nc.Simons_Observatory_V3_SA_noise(sens,knee,ylf,fsky,LMAX+1,1)
+        nell /= 5
+        n_bpw=np.sum(nell[:,None,:]*windows[None,:,:],axis=2)
 
     bpw_freq_noi=np.zeros_like(bpw_freq_sig)
 
@@ -243,6 +254,16 @@ def add_noise_nobin(lmax, bpw_freq_sig, fsky):
         ylf=1
         nell=np.zeros([nfreqs,lmax+1])
         _,nell[:,2:],_=nc.Simons_Observatory_V3_SA_noise(sens,knee,ylf,fsky,lmax+1,1)
+
+    if EXPERIMENT == 'cmbs4':
+
+        # N_ell
+        sens=2
+        knee=1
+        ylf=1
+        nell=np.zeros([nfreqs,lmax+1])
+        _,nell[:,2:],_=nc.Simons_Observatory_V3_SA_noise(sens,knee,ylf,fsky,lmax+1,1)
+        nell /= 5
 
     bpw_freq_noi=np.zeros_like(bpw_freq_sig)
 
@@ -293,7 +314,7 @@ def compute_cl(ctype, type_cov):
 
     bpw_freq_sig = np.einsum('ik,jm,iljno', seds, seds, bpw_comp)
 
-    fsky = 1. # mask = full, nc.get_fsky()
+    fsky = nc.get_fsky()
 
     bpw_freq_tot = deepcopy(bpw_freq_sig)
     bpw_freq_noi = np.zeros_like(bpw_freq_sig)
@@ -397,7 +418,7 @@ def compute_cl_nobin(ctype):
 
     bpw_freq_sig = np.einsum('ik,jm,iljno', seds, seds, dls_comp)
 
-    fsky = 1. # mask = full, nc.get_fsky()
+    fsky = nc.get_fsky() #1. # mask = full,
 
     if ctype == 'all':
         ## add noise

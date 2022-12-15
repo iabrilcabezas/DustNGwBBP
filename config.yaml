@@ -1,7 +1,7 @@
 ## all stages
 global:
     experiment: 'so'
-    machine: 'perl'
+    machine: 'cori'
     nside: 256
 
 bandpowers:
@@ -10,9 +10,9 @@ bandpowers:
     nbands: 50
     
 mask:
-    mask_type: 'full'
-    apo_deg: .NAN
-    smooth_deg: 5.
+    mask_type: 'bicep'
+    apo_deg: 5.
+    smooth_deg: 20.
     dell_nmt: 10
 
 polarization:

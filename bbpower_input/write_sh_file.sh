@@ -3,20 +3,23 @@
 base_folder=/global/cfs/cdirs/act/data/iabril/BBPower/pipeline_test
 #input_folder=/global/common/software/act/iabril/python/DustNGwBBP/bbpower_input
 
-w_type=w
+machine=cori
+w_type=wt
 experiment=so
 nside=256
 lmin=2
 nbands=50
 dell=10
-smooth=40.0
+smooth=20.0
+mtype=bicep
+apodeg=5.0
 
 test_type=${experiment}_full/$w_type
 config_type=bbpw_${experiment}_full_${w_type}
-name_run=perl_${experiment}_${nside}_${lmin}_${nbands}_${dell}_full_nan_${smooth}_10_B
+name_run=${machine}_${experiment}_${nside}_${lmin}_${nbands}_${dell}_${mtype}_${apodeg}_${smooth}_10_B
 
 name_config=${name_run}_all_Cl_${w_type}
-name_chain=${experiment}_${nside}_${lmin}_${nbands}_${dell}_${smooth}_${w_type}
+name_chain=${experiment}_${nside}_${lmin}_${nbands}_${dell}_${mtype}_${apodeg}_${smooth}_${w_type}
 
 all=_all_Cl_${w_type}_tot.fits
 noise=_all_Cl_${w_type}_noi.fits 
