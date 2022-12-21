@@ -10,9 +10,9 @@ nside=256
 lmin=2
 nbands=50
 dell=10
-smooth=20.0
-mtype=bicep
-apodeg=5.0
+smooth=40.0
+mtype=full
+apodeg=nan
 
 test_type=${experiment}_full/$w_type
 config_type=bbpw_${experiment}_full_${w_type}
@@ -25,7 +25,9 @@ all=_all_Cl_${w_type}_tot.fits
 noise=_all_Cl_${w_type}_noi.fits 
 fid=_all_Cl_${w_type}_fid.fits
 
-# rm $base_folder/$test_type/param_chains*
+if [ -f $base_folder/chains/${name_chain}.npz ]; then
+    rm $base_folder/chains/${name_chain}.npz*
+fi
 
 # Run pipeline
 python -m bbpower BBCompSep --cells_coadded=$base_folder/$name_run$all  --cells_noise=$base_folder/$name_run$noise --cells_fiducial=$base_folder/$name_run$fid    --config=$base_folder/config_files/${name_config}.yml      --param_chains=$base_folder/chains/${name_chain}.npz       --config_copy=$base_folder/temp/config_copy.yml
