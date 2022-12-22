@@ -8,6 +8,8 @@ from utils.params import PATH_DICT, EXPERIMENT, band_names_config
 from utils.params import A_dust_BB, EB_dust, alpha_dust_BB, alpha_dust_EE
 from utils.params import beta_dust, temp_dust, nu0_dust
 from utils.params import Alens, lnorm_PL
+from utils.params import A_sync_BB, EB_sync, alpha_sync_BB, alpha_sync_EE
+from utils.params import beta_sync, nu0_sync
 
 def get_band_names():
 
@@ -21,7 +23,7 @@ def get_band_names():
     **Returns**
     list of band names
     '''
-    if EXPERIMENT in ['so', 'cmbs4']:
+    if EXPERIMENT in ['so', 'cmbs4', 'cmbs4d']:
         band_names = band_names_config.so
     if EXPERIMENT == 'bicep':
         band_names = band_names_config.bicep
@@ -54,6 +56,8 @@ def comp_sed(nu,nu0,beta,temp,typ):
         x_to=0.04799244662211351*nu/temp
         x_from=0.04799244662211351*nu0/temp
         return (nu/nu0)**(1+beta)*np.expm1(x_from)/np.expm1(x_to)*fcmb(nu0)
+    elif typ == 'sync':
+        return (nu/nu0)**beta*fcmb(nu0)
     return None
 
 #Component power spectra
@@ -105,17 +109,22 @@ def get_component_spectra(lmax):
     dls_dust_ee=dl_plaw(A_dust_BB*EB_dust,alpha_dust_EE,larr_all)
     dls_dust_bb=dl_plaw(A_dust_BB,alpha_dust_BB,larr_all)
 
+    dls_sync_ee=dl_plaw(A_sync_BB*EB_sync,alpha_sync_EE,larr_all)
+    dls_sync_bb=dl_plaw(A_sync_BB,alpha_sync_BB,larr_all)
+
     _,dls_cmb_ee,dls_cmb_bb,_=read_camb( PATH_DICT['camb_cmb_lens_nobb'], lmax)
 
     return (dls_dust_ee, dls_dust_bb,
-            dls_cmb_ee, Alens*dls_cmb_bb)
+            dls_cmb_ee, Alens*dls_cmb_bb,
+            dls_sync_ee, dls_sync_bb)
 
 def get_convolved_seds(names, bpss):
     '''convolves SED with bandpasses'''
     nfreqs = len(names)
-    seds = np.zeros([2,nfreqs])
+    seds = np.zeros([3,nfreqs])
     for ib, n in enumerate(names):
         b = bpss[n]
         seds[0,ib] = b.convolve_sed(lambda nu : comp_sed(nu,None,None,None,'cmb'))
         seds[1,ib] = b.convolve_sed(lambda nu : comp_sed(nu,nu0_dust,beta_dust,temp_dust,'dust'))
+        seds[2,ib] = b.convolve_sed(lambda nu : comp_sed(nu,nu0_sync,beta_sync,None,'sync'))
     return seds

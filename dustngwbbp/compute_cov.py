@@ -7,9 +7,12 @@ compute_cov
 import numpy as np
 import sacc
 from astropy.io import fits
-from utils.params import NBANDS, NSIDE, LMIN, DELL, POLARIZATION_cov, PATH_DICT, NAME_RUN
+from utils.params import NBANDS, NSIDE, LMIN, DELL, POLARIZATION_cov
+from utils.params import PATH_DICT, NAME_RUN, NAME_CELLS, NAME_COUPLINGM, NAME_COMP
+from utils.params import name_couplingmatrix_w, name_couplingmatrix_wt
 from utils.sed import get_band_names
 from utils.bandpowers import get_ell_arrays
+from utils.noise_calc import get_fsky
 
 band_names = get_band_names()
 nfreqs = len(band_names)
@@ -38,12 +41,10 @@ def compute_cov(ctype):
     name_pol_cov = 'cl_' + 2 * POLARIZATION_cov.lower()
 
     # read in cells
-    s_d = sacc.Sacc.load_fits(PATH_DICT['output_path'] + \
-                                '_'.join([NAME_RUN, ctype, 'Cl', str(NSIDE)]) +\
-                                '_tot.fits')
+    s_d = sacc.Sacc.load_fits(PATH_DICT['output_path'] + '_'.join([NAME_CELLS, ctype]) + '_clnobin.fits')
     # read-in coupling matrices
-    mw2_matrix = np.loadtxt(PATH_DICT['output_path'] + NAME_RUN + '_couplingM_w.txt')
-    mwt2_matrix = np.loadtxt(PATH_DICT['output_path'] + NAME_RUN + '_couplingM_wt.txt')
+    mw2_matrix = np.loadtxt(name_couplingmatrix_w)
+    mwt2_matrix = np.loadtxt(name_couplingmatrix_wt)
 
     tr_names = sorted(list(s_d.tracers.keys()))
 
@@ -76,10 +77,11 @@ def compute_cov(ctype):
 
     # compute prefactor of covariance
     prefactor_l = np.zeros([nells, nells]) + np.nan
-    sum_m = 1/ (2 * ellcl + 1)
+    fsky = get_fsky()
+    sum_m_f = 1/ (2 * ellcl + 1) / fsky
 
     for i in range(int(nells)):
-        prefactor_l[:, i ] = sum_m[i] * np.ones(nells)
+        prefactor_l[:, i ] = sum_m_f[i] * np.ones(nells)
 
     # populate covariance
     for i_tr, (i_tr1,i_tr2) in enumerate(zip(indices_tr[0], indices_tr[1])):
@@ -110,9 +112,9 @@ def compute_cov(ctype):
     hdu_w = fits.PrimaryHDU(cov_w)
     hdu_wt = fits.PrimaryHDU(cov_wt)
 
-    hdu_w.writeto(PATH_DICT['output_path'] + '_'.join([NAME_RUN, ctype, 'Cov']) + \
+    hdu_w.writeto(PATH_DICT['output_path'] + '_'.join([NAME_CELLS, NAME_COUPLINGM, ctype, 'Cov']) + \
                     '_nobin_w.fits', overwrite = True)
-    hdu_wt.writeto(PATH_DICT['output_path'] + '_'.join([NAME_RUN, ctype, 'Cov']) +\
+    hdu_wt.writeto(PATH_DICT['output_path'] + '_'.join([NAME_CELLS, NAME_COUPLINGM, ctype, 'Cov']) +\
                     '_nobin_wt.fits', overwrite = True)
 
 
@@ -129,11 +131,11 @@ def get_effective_cov():
     larr_all = np.arange(3 * NSIDE)
 
     # read-in precomputed covariances
-    hdu_dustw = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_RUN, 'dust', 'Cov']) +\
+    hdu_dustw = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_CELLS, NAME_COUPLINGM, 'd00', 'Cov']) +\
                             '_nobin_w.fits')
-    hdu_dustwt = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_RUN, 'dust', 'Cov']) +\
+    hdu_dustwt = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_CELLS, NAME_COUPLINGM, 'd00', 'Cov']) +\
                             '_nobin_wt.fits')
-    hdu_all = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_RUN, 'all', 'Cov']) + \
+    hdu_all = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_CELLS, NAME_COUPLINGM, NAME_COMP, 'Cov']) + \
                             '_nobin_w.fits')
 
     cov_dustw = hdu_dustw[0].data

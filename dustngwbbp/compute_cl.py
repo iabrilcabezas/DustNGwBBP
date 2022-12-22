@@ -9,7 +9,7 @@ from copy import deepcopy
 import numpy as np
 import sacc
 from astropy.io import fits
-from utils.params import NAME_RUN, PATH_DICT
+from utils.params import NAME_CELLS, PATH_DICT, NAME_RUN, NAME_COUPLINGM, NAME_COMP
 from utils.params import EXPERIMENT, NSIDE, LMIN, DELL, NBANDS, POLARIZATION_cov
 import utils.noise_calc as nc
 from utils.binning import rebin, cut_array
@@ -21,8 +21,10 @@ LMAX, LARR_ALL, LBANDS, LEFF = get_ell_arrays(LMIN, DELL, NBANDS)
 
 nfreqs = len(band_names)
 nmodes = len(POLARIZATION_cov)
+nmaps=nmodes*nfreqs
+indices_tr=np.triu_indices(nmaps)
 
-ctype_dict_ncomp = {'dust': 1, 'all': 2}
+ctype_dict_ncomp = {'d00': 1, 'dc0': 2, 'dcs': 3}
 
 def import_bandpasses():
 
@@ -33,7 +35,7 @@ def import_bandpasses():
     if EXPERIMENT == 'bicep':
         bpss = {n: Bpass(n, PATH_DICT['BK15_data'] +\
                              f'BK15_{n}_bandpass_20180920.txt') for n in band_names}
-    if EXPERIMENT in ['so','cmbs4']:
+    if EXPERIMENT in ['so','cmbs4','cmbs4d']:
         bpss = {n: Bpass(n,PATH_DICT['bbpipe_path'] +\
                              f'examples/data/bandpasses/{n}.txt') for n in band_names}
 
@@ -52,7 +54,7 @@ def import_beams(ell_array):
     if EXPERIMENT == 'bicep':
         beams ={band_names[i]: b for i, b in \
                     enumerate(nc.bicep_beams_exp(ell_array))}
-    if EXPERIMENT in ['so','cmbs4']:
+    if EXPERIMENT in ['so','cmbs4','cmbs4d']:
         beams ={band_names[i]: b for i, b in \
                     enumerate(nc.Simons_Observatory_V3_SA_beams(ell_array))}
 
@@ -126,126 +128,53 @@ def add_tracers(ell_array):
 
     return s_d
 
-def add_powerspectra(s_d, bpw_freq_sig, polarization, weight):
+def add_powerspectra(s_d, bpw_freq_sig, leff, do_bin, weight = 'Cl'):
 
     '''
     add power spectra to sacc
     '''
 
-    nmaps=nmodes*nfreqs
-    indices_tr=np.triu_indices(nmaps)
-    windows = get_windows(weight)
-    s_wins = sacc.BandpowerWindow(LARR_ALL, windows.T)
+    if do_bin:
+        windows = get_windows(weight)
+        s_wins = sacc.BandpowerWindow(LARR_ALL, windows.T)
 
     map_names=[]
     for i_freq in range(nfreqs):
-        if 'E' in polarization:
+        if 'E' in POLARIZATION_cov:
             map_names.append(f'band{i_freq+1}_E')
-        if 'B' in polarization:
+        if 'B' in POLARIZATION_cov:
             map_names.append(f'band{i_freq+1}_B')
 
     for (i_tr1, i_tr2) in zip(indices_tr[0], indices_tr[1]):
         band12 = np.array([map_names[i_tr1][:-2], map_names[i_tr2][:-2]])
         pol12  = np.array([map_names[i_tr1][-1].lower(), map_names[i_tr2][-1].lower()])
         cl_type = f'cl_{pol12[0]}{pol12[1]}'
-        s_d.add_ell_cl(cl_type, band12[0], band12[1], LEFF, bpw_freq_sig[i_tr1, i_tr2, :],
+
+        if do_bin:
+            s_d.add_ell_cl(cl_type, band12[0], band12[1], LEFF, bpw_freq_sig[i_tr1, i_tr2, :],
                          window = s_wins)
+        else:
+            s_d.add_ell_cl(cl_type, band12[0], band12[1], leff, bpw_freq_sig[i_tr1, i_tr2, :])
 
-    return s_d
-
-def add_powerspectra_nobin(s_d, bpw_freq_sig, polarization, leff):
-
-    '''
-    Same as add_powerspectra() but without windows (Cl weighting)
-    '''
-
-    nmaps=nmodes*nfreqs
-    indices_tr=np.triu_indices(nmaps)
-
-    map_names=[]
-    for i_freq in range(nfreqs):
-        if 'E' in polarization:
-            map_names.append(f'band{i_freq+1}_E')
-        if 'B' in polarization:
-            map_names.append(f'band{i_freq+1}_B')
-
-    for (i_tr1, i_tr2) in zip(indices_tr[0], indices_tr[1]):
-        band12 = np.array([map_names[i_tr1][:-2], map_names[i_tr2][:-2]])
-        pol12  = np.array([map_names[i_tr1][-1].lower(), map_names[i_tr2][-1].lower()])
-        cl_type = f'cl_{pol12[0]}{pol12[1]}'
-        s_d.add_ell_cl(cl_type, band12[0], band12[1], leff, bpw_freq_sig[i_tr1, i_tr2, :])
 
     return s_d
 
 
-def add_noise(weight, bpw_freq_sig, fsky):
+def add_noise(lmax, bpw_freq_sig, fsky, do_bin, weight = 'Cl'):
 
     '''
     add noise
     '''
 
-    windows = get_windows(weight)
+    if do_bin:
+        windows = get_windows(weight)
 
     if EXPERIMENT == 'bicep':
 
-        nell = np.zeros([nfreqs, LMAX + 1])
-        _, nell[:, 2:] = nc.bicep_noise(LMAX)
-
-        n_bpw=np.sum(nell[:,None,:]*windows[None,:,:],axis=2)
-
-        # n_ell, n_bpw = nc.bicep_noise_fromfile(MACHINE)
-        # assert np.all(np.isclose(n_ell, LEFF))
-        # if weight == 'dl':
-            #     n_bpw *= (n_ell * (n_ell + 1) / (2 * np.pi) )
-
-    if EXPERIMENT == 'so':
-
-        # N_ell
-        sens=2
-        knee=1
-        ylf=1
-        nell=np.zeros([nfreqs,LMAX+1])
-        _,nell[:,2:],_=nc.Simons_Observatory_V3_SA_noise(sens,knee,ylf,fsky,LMAX+1,1)
-        n_bpw=np.sum(nell[:,None,:]*windows[None,:,:],axis=2)
-    
-    if EXPERIMENT == 'cmbs4':
-
-        # N_ell
-        sens=2
-        knee=1
-        ylf=1
-        nell=np.zeros([nfreqs,LMAX+1])
-        _,nell[:,2:],_=nc.Simons_Observatory_V3_SA_noise(sens,knee,ylf,fsky,LMAX+1,1)
-        nell /= 5
-        n_bpw=np.sum(nell[:,None,:]*windows[None,:,:],axis=2)
-
-    bpw_freq_noi=np.zeros_like(bpw_freq_sig)
-
-    for ib in range(len(n_bpw)):
-        bpw_freq_noi[ib,0,ib,0,:]=n_bpw[ib,:]
-        if nmodes == 2:
-            bpw_freq_noi[ib,1,ib,1,:]=n_bpw[ib,:]
-
-
-    return bpw_freq_noi
-
-def add_noise_nobin(lmax, bpw_freq_sig, fsky):
-
-    '''
-    Same as add_noise() but without binning according to window (cl weighting, no binning)
-    '''
-
-    if EXPERIMENT == 'bicep':
-
-        # n_ell, n_bpw = nc.bicep_noise_fromfile(MACHINE)
-        # assert np.all(np.isclose(n_ell, LEFF))
-
-        # if weight == 'dl':
-
-        #     n_bpw *= (n_ell * (n_ell + 1) / (2 * np.pi) )
         nell = np.zeros([nfreqs, lmax + 1])
         _, nell[:, 2:] = nc.bicep_noise(lmax)
 
+
     if EXPERIMENT == 'so':
 
         # N_ell
@@ -255,7 +184,7 @@ def add_noise_nobin(lmax, bpw_freq_sig, fsky):
         nell=np.zeros([nfreqs,lmax+1])
         _,nell[:,2:],_=nc.Simons_Observatory_V3_SA_noise(sens,knee,ylf,fsky,lmax+1,1)
 
-    if EXPERIMENT == 'cmbs4':
+    if EXPERIMENT in ['cmbs4', 'cmbs4d']:
 
         # N_ell
         sens=2
@@ -265,14 +194,72 @@ def add_noise_nobin(lmax, bpw_freq_sig, fsky):
         _,nell[:,2:],_=nc.Simons_Observatory_V3_SA_noise(sens,knee,ylf,fsky,lmax+1,1)
         nell /= 5
 
+    if do_bin:
+        n_bpw=np.sum(nell[:,None,:]*windows[None,:,:],axis=2)
+        noise_array = n_bpw
+    else:
+        noise_array = nell
+
     bpw_freq_noi=np.zeros_like(bpw_freq_sig)
 
-    for ib in range(len(nell)):
-        bpw_freq_noi[ib,0,ib,0,:]=nell[ib,:]
+    for ib in range(len(noise_array)):
+        bpw_freq_noi[ib,0,ib,0,:]=noise_array[ib,:]
         if nmodes == 2:
-            bpw_freq_noi[ib,1,ib,1,:]=nell[ib,:]
+            bpw_freq_noi[ib,1,ib,1,:]=noise_array[ib,:]
 
     return bpw_freq_noi
+
+
+def get_bpw_freq_sig(ctype, lmax, do_bin, weight = 'Cl'):
+
+    '''
+    
+    '''
+
+    assert POLARIZATION_cov == 'B', 'reading B components but you have specified otherwise'
+
+    bpss = import_bandpasses()
+
+    dl2cl = dell2cell_lmax(lmax)
+
+    ncomp = ctype_dict_ncomp[ctype]
+
+    dls_comp = np.zeros([ncomp,nmodes,ncomp,nmodes,lmax+1]) #[ncomp,np,ncomp,np,nl]
+    dls_sed  = get_component_spectra(lmax)
+
+    if ctype == 'd00':
+        dls_comp[0,0,0,0,:] = dls_sed[1]
+
+    if ctype == 'dc0':
+        (dls_comp[1,0,1,0,:],
+        dls_comp[0,0,0,0,:]) = dls_sed[1], dls_sed[3]
+
+    if ctype == 'dcs':
+        (dls_comp[1,0,1,0,:],
+        dls_comp[0,0,0,0,:],
+        dls_comp[2,0,2,0,:]) = dls_sed[1], dls_sed[3], dls_sed[5]
+
+    dls_comp *= dl2cl[None, None, None, None, :]
+
+    if do_bin:
+        windows = get_windows(weight)
+        bpw_comp=np.sum(dls_comp[:,:,:,:,None,:]*windows[None,None,None, None, :,:],axis=5)
+        to_bpw_freq = bpw_comp
+    else:
+        to_bpw_freq = dls_comp
+
+    # Convolve with bandpasses
+    seds = get_convolved_seds(band_names, bpss)
+
+    if ncomp == 1:
+        seds = np.array([seds[1,:]])
+    elif ncomp == 2:
+        seds = seds[:2, :]
+
+    bpw_freq_sig = np.einsum('ik,jm,iljno', seds, seds, to_bpw_freq)
+
+    return bpw_freq_sig
+
 
 
 def compute_cl(ctype, type_cov):
@@ -281,47 +268,18 @@ def compute_cl(ctype, type_cov):
     because for cov , weight = 'cl'
     '''
     weight = 'Cl'
-    weight_name = '_'.join([weight, type_cov])
-
-    bpss = import_bandpasses()
-
-    dl2cl = dell2cell_lmax(LMAX)
-
     ncomp = ctype_dict_ncomp[ctype]
 
-    dls_comp = np.zeros([ncomp,nmodes,ncomp,nmodes,LMAX+1]) #[ncomp,np,ncomp,np,nl]
-    dls_sed  = get_component_spectra(LMAX)
-
-    if ncomp == 1:
-        dls_comp[0,0,0,0,:] = dls_sed[1]
-
-    if ncomp == 2:
-        (dls_comp[1,0,1,0,:],
-        dls_comp[0,0,0,0,:]) = dls_sed[1], dls_sed[3]
-
-
-    dls_comp *= dl2cl[None, None, None, None, :]
-
-    windows = get_windows(weight)
-
-    bpw_comp=np.sum(dls_comp[:,:,:,:,None,:]*windows[None,None,None, None, :,:],axis=5)
-
-    # Convolve with bandpasses
-    seds = get_convolved_seds(band_names, bpss)
-
-    if ncomp == 1:
-        seds = np.array([seds[1,:]])
-
-    bpw_freq_sig = np.einsum('ik,jm,iljno', seds, seds, bpw_comp)
+    bpw_freq_sig = get_bpw_freq_sig(ctype, LMAX, True, weight)
 
     fsky = nc.get_fsky()
 
     bpw_freq_tot = deepcopy(bpw_freq_sig)
     bpw_freq_noi = np.zeros_like(bpw_freq_sig)
 
-    if ctype == 'all':
+    if ncomp > 1:
         ## add noise
-        bpw_freq_noi = add_noise(weight, bpw_freq_sig, fsky)
+        bpw_freq_noi = add_noise(LMAX, bpw_freq_sig, fsky, True, weight)
         bpw_freq_tot += bpw_freq_noi
 
     bpw_freq_sig = bpw_freq_sig.reshape([nfreqs*nmodes,nfreqs*nmodes, NBANDS])
@@ -335,19 +293,15 @@ def compute_cl(ctype, type_cov):
     s_n = add_tracers(LARR_ALL)
     # Adding power spectra
     print("Adding spectra")
-    s_d = add_powerspectra(s_d, bpw_freq_sig, POLARIZATION_cov, weight)
-    s_f = add_powerspectra(s_f, bpw_freq_sig, POLARIZATION_cov, weight)
-    s_n = add_powerspectra(s_n, bpw_freq_noi, POLARIZATION_cov, weight)
+    s_d = add_powerspectra(s_d, bpw_freq_sig, LEFF, True, weight)
+    s_f = add_powerspectra(s_f, bpw_freq_sig, LEFF, True, weight)
+    s_n = add_powerspectra(s_n, bpw_freq_noi, LEFF, True, weight)
 
-    assert (ctype == 'all'), 'adding cov to dust only?'
+    assert (ctype != 'd00'), 'adding cov to dust only?'
     ncombs = len(s_d.get_tracer_combinations())
+    assert ncombs == len(indices_tr[0]), 'how many maps do you have?'
 
     cov_bpw = np.zeros([ncombs, NBANDS, ncombs, NBANDS])
-
-    nmaps=nmodes*nfreqs
-    indices_tr=np.triu_indices(nmaps)
-
-    assert len(indices_tr[0]) == ncombs, 'how many maps do you have?'
 
     # factor_modecount = 1./((2*leff+1)*DELL*fsky)
     # for ii, (i1, i2) in enumerate(zip(indices_tr[0], indices_tr[1])):
@@ -357,12 +311,11 @@ def compute_cl(ctype, type_cov):
     #         cov_bpw[ii, :, jj, :] = np.diag(covar)
 
     if type_cov == 'w':
-        cov_bpw_full = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_RUN, 'all', 'Cov']) +\
-                             '_nobin_w.fits')[0].data
+        cov_bpw_full = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_CELLS, NAME_COUPLINGM, NAME_COMP, 'Cov']) + \
+                            '_nobin_w.fits')[0].data
 
     if type_cov == 'wt':
-        cov_bpw_full =  fits.open(PATH_DICT['output_path'] + NAME_RUN + \
-                            '_nobin_fullCov.fits')[0].data
+        cov_bpw_full =  fits.open(PATH_DICT['output_path'] + NAME_RUN +'_nobin_fullCov.fits')[0].data
 
     # cut and bin COV MW matrix:
     for i_tr in range(ncombs):
@@ -374,13 +327,14 @@ def compute_cl(ctype, type_cov):
     s_d.add_covariance(cov_bpw)
 
     print("Writing")
-    s_d.save_fits(PATH_DICT['output_path'] + '_'.join([NAME_RUN, ctype, weight_name]) + \
+    s_d.save_fits(PATH_DICT['output_path'] + '_'.join([NAME_RUN, weight, type_cov]) + \
                     '_tot.fits', overwrite = True)
-
-    s_f.save_fits(PATH_DICT['output_path'] + '_'.join([NAME_RUN, ctype, weight_name]) +\
+    s_f.save_fits(PATH_DICT['output_path'] + '_'.join([NAME_RUN, weight, type_cov]) +\
                      '_fid.fits', overwrite = True)
-    s_n.save_fits(PATH_DICT['output_path'] + '_'.join([NAME_RUN, ctype, weight_name]) + \
+    s_n.save_fits(PATH_DICT['output_path'] + '_'.join([NAME_RUN, weight, type_cov]) + \
                     '_noi.fits', overwrite = True)
+
+
 
 
 def compute_cl_nobin(ctype):
@@ -388,41 +342,19 @@ def compute_cl_nobin(ctype):
     '''
     because for cov , weight = 'cl'
     '''
-    weight = 'Cl'
-
-    bpss = import_bandpasses()
 
     lmax = 3 * NSIDE - 1
     larr_all = np.arange(lmax + 1)
 
-    dl2cl = dell2cell_lmax(lmax)
     ncomp = ctype_dict_ncomp[ctype]
 
-    dls_comp = np.zeros([ncomp,nmodes,ncomp,nmodes,lmax+1]) #[ncomp,np,ncomp,np,nl]
-    dls_sed  = get_component_spectra(lmax)
+    bpw_freq_sig = get_bpw_freq_sig(ctype, lmax, False)
 
-    if ncomp == 1:
-        dls_comp[0,0,0,0,:] = dls_sed[1]
+    fsky = nc.get_fsky()
 
-    if ncomp == 2:
-        (dls_comp[1,0,1,0,:],
-        dls_comp[0,0,0,0,:]) = dls_sed[1], dls_sed[3]
-
-    dls_comp *= dl2cl[None, None, None, None, :]
-
-    # Convolve with bandpasses
-    seds = get_convolved_seds(band_names, bpss)
-
-    if ncomp == 1:
-        seds = np.array([seds[1,:]])
-
-    bpw_freq_sig = np.einsum('ik,jm,iljno', seds, seds, dls_comp)
-
-    fsky = nc.get_fsky() #1. # mask = full,
-
-    if ctype == 'all':
+    if ncomp > 1:
         ## add noise
-        bpw_freq_noi = add_noise_nobin(lmax, bpw_freq_sig, fsky)
+        bpw_freq_noi = add_noise(lmax, bpw_freq_sig, fsky, False)
         bpw_freq_sig += bpw_freq_noi
 
     bpw_freq_sig = bpw_freq_sig.reshape([nfreqs*nmodes,nfreqs*nmodes, lmax + 1])
@@ -432,9 +364,8 @@ def compute_cl_nobin(ctype):
     s_d = add_tracers(larr_all)
     # Adding power spectra
     print("Adding spectra")
-    s_d = add_powerspectra_nobin(s_d, bpw_freq_sig, POLARIZATION_cov, larr_all)
+    s_d = add_powerspectra(s_d, bpw_freq_sig, larr_all, False)
 
     print("Writing")
-    s_d.save_fits(PATH_DICT['output_path'] + '_'.join([NAME_RUN, ctype, weight, str(NSIDE)]) + \
-                    '_tot.fits', overwrite = True)
+    s_d.save_fits(PATH_DICT['output_path'] + '_'.join([NAME_CELLS, ctype]) + '_clnobin.fits', overwrite = True)
  

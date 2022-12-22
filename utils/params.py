@@ -20,6 +20,67 @@ def get_namerun(kwargs_dict):
 
     return '_'.join(map(str, kwargs_dict.values()))
 
+def get_namecouplingm(nside, mtype, **kwargs_mask):
+
+    '''
+    Returns string to name results of compute_couplingmatrix()
+
+    ** Parameters **
+    nside: int
+        resolution of maps
+    dell_nmt: int
+        width of ell bins in namaster bandpower bins
+    mtype: str
+        type of mask
+    apo_deg: float or NaN
+        apodization scale of mask
+
+    * Returns *
+    str
+    '''
+
+    values = [nside, kwargs_mask['dell_nmt'], mtype, kwargs_mask['apo_deg'], kwargs_mask['smooth_deg']]
+
+
+    return '_'.join(map(str, values))
+
+def get_namecells(experiment, nside, polarization, ctype):
+
+    '''
+    Returns string name for compute_cl_nobin()
+
+    * Parameters *
+    experiment: 'so', 'bicep', 'cmbs4','cmbs4d'
+        experiment to determine bandpasses, noise levels, sky coverage (fsky)
+    nside: int
+        resolution of maps
+    polarization: 'e', 'b' or 'eb'
+        polarization channels to use
+    ctype: 'd00','dc0','dcs'
+        components (d)ust+(c)mb+(s)ynchrotron
+
+    * Returns *
+    str
+    '''
+
+    values = [experiment, nside, polarization, ctype]
+
+    return '_'.join(map(str, values))
+
+def get_namecomp(comp_dict):
+
+    '''
+    Returns name string to specify components
+    '''
+
+    assert comp_dict['dust'] is True, 'no dust in your model!'
+
+    if comp_dict['sync']:
+        return 'dcs'
+
+    return 'dc0'
+
+
 def pathnames():
 
     '''
@@ -175,6 +236,7 @@ class CosmoConfig:
     def __init__(self, param):
         self.CMB = param['CMB']
         self.dust = param['dust']
+        self.sync = param['sync']
         self.model = param['model']
 
 class BandConfig:
@@ -191,6 +253,22 @@ class BandConfig:
     def __init__(self, param):
         self.so = param['SO']
         self.bicep = param['BICEP']
+    
+class CompConfig:
+
+    '''
+    2nd level class of config file
+    contains info on model components used
+    dust: bool
+        contains dust
+    sync: bool
+        contains sync
+    '''
+    def __init__(self, param):
+        self.dust = param['dust']
+        self.sync = param['sync']
+        # self.cross = param['cross']
+
 
 class Config:
 
@@ -215,10 +293,12 @@ class Config:
         self.mask_param   = MaskConfig(param['mask'])
         self.cosmo_param  = CosmoConfig(param['cosmology'])
         self.band_names   = BandConfig(param['band_names'])
+        self.components  = CompConfig(param['components'])
 
 
 with open('config.yaml', 'r', encoding = 'utf-8') as config_file:
     config = Config(yaml.load(config_file, yaml.FullLoader))
+
 
 NSIDE   = config.global_param.nside
 MACHINE = config.global_param.machine
@@ -235,6 +315,7 @@ band_names_config = config.band_names
 cosmo_params = config.cosmo_param
 cmb_params = cosmo_params.CMB
 dust_params = cosmo_params.dust
+sync_params = cosmo_params.sync
 model_params = cosmo_params.model
 
 A_dust_BB = dust_params['A_dust_BB']
@@ -247,12 +328,29 @@ nu0_dust = dust_params['nu0_dust']
 Alens = cmb_params['Alens']
 lnorm_PL = model_params['lnorm_PL']
 
+A_sync_BB = sync_params['A_sync_BB']
+EB_sync =  sync_params['A_sync_BB']
+alpha_sync_EE = sync_params['alpha_sync_BB']
+alpha_sync_BB =  sync_params['alpha_sync_BB']
+beta_sync =  sync_params['beta_sync']
+nu0_sync = sync_params['nu0_sync']
+
 PATH_DICT = dict(pathnames())
 
 namerun_dict = {**config.global_param.__dict__, **config.bpw_param.__dict__, \
                 **config.mask_param.__dict__, **config.pol_param.__dict__}
 
-NAME_RUN  = get_namerun(namerun_dict)
+NAME_COUPLINGM = get_namecouplingm(NSIDE, MTYPE, **config.mask_param.__dict__)
+NAME_COMP = get_namecomp(config.components.__dict__)
+NAME_CELLS = get_namecells(EXPERIMENT, NSIDE, POLARIZATION_cov, NAME_COMP)
+NAME_RUN  = get_namerun(namerun_dict) + '_' + NAME_COMP
+
+name_couplingmatrix_w = PATH_DICT['output_path'] + NAME_COUPLINGM + '_couplingM_w.txt'
+name_couplingmatrix_wt = PATH_DICT['output_path'] + NAME_COUPLINGM + '_couplingM_wt.txt'
+
 
 print(NAME_RUN)
 print(PATH_DICT)
+print(NAME_COMP)
+print(NAME_COUPLINGM)
+print(NAME_CELLS)

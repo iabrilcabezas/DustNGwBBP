@@ -7,7 +7,8 @@ compute_couplingmatrix
 import pymaster as nmt
 import numpy as np
 from utils.namaster import get_bandpowers, get_template_wmask, get_couplingmatrix
-from utils.params import NAME_RUN, NSIDE, MTYPE, PATH_DICT
+from utils.params import NAME_COUPLINGM, NSIDE, MTYPE, PATH_DICT
+from utils.params import name_couplingmatrix_w, name_couplingmatrix_wt
 
 def compute_couplingmatrix(**kwargs_dict):
 
@@ -40,7 +41,5 @@ def compute_couplingmatrix(**kwargs_dict):
     mw2_matrix =  get_couplingmatrix(f_d2, f_d2, bin_bpw)
     mwt2_matrix = get_couplingmatrix(f_dtilde2, f_dtilde2, bin_bpw)
 
-    np.savetxt(PATH_DICT['output_path'] + NAME_RUN + '_couplingM_w.txt',
-                 mw2_matrix)
-    np.savetxt(PATH_DICT['output_path'] + NAME_RUN + '_couplingM_wt.txt',
-                 mwt2_matrix)
+    np.savetxt(name_couplingmatrix_w , mw2_matrix)
+    np.savetxt(name_couplingmatrix_wt, mwt2_matrix)

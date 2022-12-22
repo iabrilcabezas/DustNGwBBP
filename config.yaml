@@ -1,7 +1,7 @@
 ## all stages
 global:
-    experiment: 'so'
-    machine: 'cori'
+    experiment: 'cmbs4d'
+    machine: 'perl'
     nside: 256
 
 bandpowers:
@@ -10,13 +10,17 @@ bandpowers:
     nbands: 50
     
 mask:
-    mask_type: 'bicep'
-    apo_deg: 5.
+    mask_type: 'full'
+    apo_deg: .NAN
     smooth_deg: 20.
     dell_nmt: 10
 
 polarization:
     pol_cov: 'B'
+
+components:
+    dust: True
+    sync: False
 
 paths:
     output_path: '/global/cfs/cdirs/act/data/iabril/BBPower/pipeline_test/'
@@ -29,7 +33,7 @@ paths:
 cosmology:
 
     CMB:
-        Alens: 1.0
+        Alens: 0.5
 
     dust:
 
@@ -40,6 +44,15 @@ cosmology:
         beta_dust: 1.59 # modified BB emission 1409.5738
         temp_dust: 19.6 # modified BB emission 1409.5738
         nu0_dust: 353.
+
+    sync:
+
+        A_sync_BB: 2.0
+        EB_sync : 2.
+        alpha_sync_EE : -0.6
+        alpha_sync_BB : -0.4
+        beta_sync : -3.
+        nu0_sync : 23.
 
     model:
         lnorm_PL: 80.        # PL param 1801.04945
