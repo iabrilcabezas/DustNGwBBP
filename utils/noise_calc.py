@@ -6,10 +6,10 @@ Note these functions have loads of hard coded values e.g. beams, fsky, sensitivi
 '''
 
 import numpy as np
-from utils.params import config
+# from utils.params import config
 from utils.params import PATH_DICT
-from utils.params import NSIDE, MTYPE
-from utils.namaster import get_mask
+from utils.params import EXPERIMENT
+# from utils.namaster import get_mask
 
 
 def bicep_bands():
@@ -138,8 +138,17 @@ def get_fsky():
     return fsky
     '''
 
-    mask = get_mask(NSIDE, MTYPE, **config.mask_param.__dict__)
-    fsky = np.mean(mask)
+    # mask = get_mask(NSIDE, MTYPE, **config.mask_param.__dict__)
+    # fsky = np.mean(mask)
+
+
+    if EXPERIMENT == 'bicep':
+
+        fsky = np.mean(fsky_fromnoise()[1])
+
+    if EXPERIMENT in ['so', 'cmbs4','cmbs4d']:
+
+        fsky = 0.1
 
     return fsky
 
