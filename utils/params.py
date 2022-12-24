@@ -137,7 +137,6 @@ class GlobalConfig:
     '''
 
     def __init__(self, param):
-        self.machine    = param['machine']
         self.experiment = param['experiment']
         self.nside      = param['nside']
 
@@ -269,6 +268,18 @@ class CompConfig:
         self.sync = param['sync']
         # self.cross = param['cross']
 
+class BBCompConfig:
+
+    def __init__(self, param):
+        self.lmin = param['lmin']
+        self.lmax = param['lmax']
+        self.bands = param['bands']
+
+class ExtConfig:
+
+    def __init__(self, param):
+        self.machine = param['machine']
+
 
 class Config:
 
@@ -293,15 +304,17 @@ class Config:
         self.mask_param   = MaskConfig(param['mask'])
         self.cosmo_param  = CosmoConfig(param['cosmology'])
         self.band_names   = BandConfig(param['band_names'])
-        self.components  = CompConfig(param['components'])
+        self.components   = CompConfig(param['components'])
+        self.bbcomp       = BBCompConfig(param['bbcomp'])
+        self.external     = ExtConfig(param['external'])
 
 
 with open('config.yaml', 'r', encoding = 'utf-8') as config_file:
     config = Config(yaml.load(config_file, yaml.FullLoader))
 
 
+MACHINE = config.external.machine
 NSIDE   = config.global_param.nside
-MACHINE = config.global_param.machine
 EXPERIMENT = config.global_param.experiment
 MTYPE   = config.mask_param.mask_type
 DELL_NMT = config.mask_param.dell_nmt
@@ -309,6 +322,10 @@ LMIN = config.bpw_param.lmin
 DELL = config.bpw_param.dell
 NBANDS = config.bpw_param.nbands
 POLARIZATION_cov = config.pol_param.pol_cov
+
+LMIN_BBCOMP = config.bbcomp.lmin
+LMAX_BBCOMP = config.bbcomp.lmax
+BANDS_BBCOMP = config.bbcomp.bands
 
 band_names_config = config.band_names
 
@@ -348,6 +365,11 @@ NAME_RUN  = get_namerun(namerun_dict) + '_' + NAME_COMP
 name_couplingmatrix_w = PATH_DICT['output_path'] + NAME_COUPLINGM + '_couplingM_w.txt'
 name_couplingmatrix_wt = PATH_DICT['output_path'] + NAME_COUPLINGM + '_couplingM_wt.txt'
 
+if BANDS_BBCOMP != 'all':
+    name_bands =  '_'.join(BANDS_BBCOMP)
+else:
+    name_bands = BANDS_BBCOMP
+name_configcompsep = '_'.join([str(LMIN_BBCOMP), str(LMAX_BBCOMP), name_bands])
 
 print(NAME_RUN)
 print(PATH_DICT)

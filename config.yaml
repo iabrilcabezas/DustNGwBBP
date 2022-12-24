@@ -1,7 +1,9 @@
 ## all stages
+external:
+    machine: 'cori'
+
 global:
-    experiment: 'cmbs4d'
-    machine: 'perl'
+    experiment: 'so'
     nside: 256
 
 bandpowers:
@@ -21,6 +23,11 @@ polarization:
 components:
     dust: True
     sync: False
+
+bbcomp:
+    lmin: 30
+    lmax: 300
+    bands: ['UHF1', 'UHF2']
 
 paths:
     output_path: '/global/cfs/cdirs/act/data/iabril/BBPower/pipeline_test/'

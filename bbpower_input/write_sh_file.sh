@@ -3,8 +3,8 @@
 base_folder=/global/cfs/cdirs/act/data/iabril/BBPower/pipeline_test
 #input_folder=/global/common/software/act/iabril/python/DustNGwBBP/bbpower_input
 
-machine=cori
-experiment=so
+machine=perl
+experiment=cmbs4d
 nside=256
 lmin=2
 nbands=50
@@ -16,10 +16,13 @@ dellnmt=10
 pol=B
 weight=Cl
 
-ctype=dcs
+ctype=dc0
 #w_type=wt
-cross=C
-moments=M
+cross=0
+moments=0
+bands=all
+lminbb=30
+lmaxbb=300
 
 all=_tot.fits
 noise=_noi.fits 
@@ -31,8 +34,9 @@ wtypes='w wt'
 
 for w_type in $wtypes
 do
-    name_c=${name_run}_${cross}_${moments}_${w_type}
-    name_cls=${name_run}_${w_type}
+    base_name=${name_run}_${cross}_${moments}_${w_type}
+    name_cls=${base_name}_${w_type}
+    name_c=${base_name}_${lminbb}_${lmaxbb}_${bands}
 
     if [ -f $base_folder/chains/${name_c}.npz* ]; then
         rm $base_folder/chains/${name_c}.npz*

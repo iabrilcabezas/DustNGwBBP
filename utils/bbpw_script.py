@@ -5,8 +5,14 @@ bbpw_script
 
 import yaml
 from utils.params import PATH_DICT, NAME_RUN, NAME_COMP, POLARIZATION_cov
+from utils.params import LMAX_BBCOMP, LMIN_BBCOMP, BANDS_BBCOMP, name_configcompsep
+from utils.sed import get_band_names
+
+band_names = get_band_names()
 
 assert POLARIZATION_cov == 'B', 'script only for B polarization'
+if BANDS_BBCOMP != 'all':
+    assert all(bb in band_names for bb in BANDS_BBCOMP), 'bands are not in the instrument bands'
 
 def write_config_yml_script(type_cov, nside_bbpw, cross = False, moments = False):
 
@@ -69,13 +75,13 @@ def write_config_yml_script(type_cov, nside_bbpw, cross = False, moments = False
 
     if NAME_COMP == 'dcs':
         dict_fgmodel['component_2'] = dict_comp2
-    
+
     nwalk = 24
     if (moments & cross):
         nwalk = 36
 
     name_inputs += '_' + type_cov
-    path_inputs = PATH_DICT['output_path'] + name_inputs
+    path_inputs = PATH_DICT['output_path'] + name_inputs + '_' + name_configcompsep
     path_config = PATH_DICT['output_path'] + 'config_files/' + name_inputs + '.yml'
 
     dict_config = {'global': {'nside': nside_bbpw, 'compute_dell': False},
@@ -95,8 +101,9 @@ def write_config_yml_script(type_cov, nside_bbpw, cross = False, moments = False
                                  'n_iters': 1000,
                                  'likelihood_type': 'h&l',
                                  'pol_channels': ['B'],
-                                 'l_min': 30,
-                                 'l_max': 300,
+                                 'l_min': LMIN_BBCOMP,
+                                 'l_max': LMAX_BBCOMP,
+                                 'bands': BANDS_BBCOMP,
                                  'cmb_model': {'cmb_templates': ['/global/cfs/cdirs/act/software/iabril/condaenvs/github_reps/BBPower/examples/data/camb_lens_nobb.dat',
                                                                  '/global/cfs/cdirs/act/software/iabril/condaenvs/github_reps/BBPower/examples/data/camb_lens_r1.dat'],
                                                'params': {'r_tensor': ['r_tensor', 'tophat', [-0.1, 0.0, 0.1]],

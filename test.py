@@ -8,18 +8,18 @@ from dustngwbbp.compute_cl import compute_cl_nobin, compute_cl
 from dustngwbbp.compute_couplingmatrix import compute_couplingmatrix
 from dustngwbbp.compute_cov import compute_cov, get_effective_cov
 
-# compute_couplingmatrix(**config.mask_param.__dict__)
+compute_couplingmatrix(**config.mask_param.__dict__)
 
-# compute_cl_nobin('d00')
-# compute_cl_nobin(NAME_COMP)
+compute_cl_nobin('d00')
+compute_cl_nobin(NAME_COMP)
 
-# compute_cov('d00')
-# compute_cov(NAME_COMP)
+compute_cov('d00')
+compute_cov(NAME_COMP)
 
-# get_effective_cov()
+get_effective_cov()
 
-# compute_cl(NAME_COMP,'w')
-# compute_cl(NAME_COMP,'wt')
+compute_cl(NAME_COMP,'w')
+compute_cl(NAME_COMP,'wt')
 
 nside_bp = 256
 
