@@ -8,7 +8,7 @@ import healpy as hp
 import pymaster as nmt
 from astropy import units as u
 from astropy.coordinates import SkyCoord
-from utils.params import PATH_DICT
+from utils.params import PATH_DICT, NSIDE
 
 def get_bandpowers(nside, width_ell):
 
@@ -89,7 +89,6 @@ def get_mask(nside, mtype, **kwargs):
 
         return np.ones(npix)
 
-
     if mtype == 'bicep':
 
         w_bicep = np.zeros(npix)
@@ -120,9 +119,18 @@ def get_mask(nside, mtype, **kwargs):
             w_bicep[ipix_bicep] = 1. # this is the region we want (1)
 
         # smooth the mask
-        w_apo = nmt.mask_apodization(w_bicep, kwargs['apo_deg'], apotype="Smooth")
+        w_apo = nmt.mask_apodization(w_bicep, kwargs['apo_deg'], apotype="C1")
 
         return w_apo
+
+    if mtype == 'so':
+
+        w_so = hp.read_map(PATH_DICT['so_path'] + 'mask_apodized_david_nside512.fits')
+        w_so_hi = hp.ud_grade(w_so, NSIDE)
+        # smooth the mask
+        w_so_apo = nmt.mask_apodization(w_so_hi, kwargs['apo_deg'], apotype="C1")
+
+        return w_so_apo
 
     return None
 
