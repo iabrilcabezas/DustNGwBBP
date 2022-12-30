@@ -7,7 +7,7 @@ from utils.params import name_configcompsep
 from utils.params import PATH_DICT, NAME_RUN
 
 band_names = get_band_names()
-NSIMS = int(1e3)
+NSIMS = int(1e4)
 
 Sf_all = SfClass(bands = 'all',lmin_bbp =  LMIN_BBCOMP, lmax_bbp = LMAX_BBCOMP)
 
