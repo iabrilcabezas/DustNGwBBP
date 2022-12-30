@@ -1,6 +1,6 @@
 ## all stages
 external:
-    machine: 'cori'
+    machine: 'perl'
 
 global:
     experiment: 'so'
@@ -12,9 +12,9 @@ bandpowers:
     nbands: 50
     
 mask:
-    mask_type: 'full'
-    apo_deg: .NAN
-    smooth_deg: 20.
+    mask_type: 'so'
+    apo_deg: 5.
+    smooth_deg: 40.
     dell_nmt: 10
 
 polarization:
@@ -24,11 +24,6 @@ components:
     dust: True
     sync: False
 
-bbcomp:
-    lmin: 30
-    lmax: 300
-    bands: ['UHF1', 'UHF2']
-
 paths:
     output_path: '/global/cfs/cdirs/act/data/iabril/BBPower/pipeline_test/'
     bicep_BK15: '/global/cfs/cdirs/act/data/iabril/BICEP/'
@@ -36,11 +31,12 @@ paths:
     planck_path_cori: '/global/cscratch1/sd/iabril/PlanckData/'
     planck_path_perl: '/pscratch/sd/i/iabril/data/PlanckData/'
     camb_cmb_lens_nobb: '/global/cfs/cdirs/act/software/iabril/condaenvs/github_reps/BBPower/examples/data/camb_lens_nobb.dat'
+    so_path: '/global/cfs/cdirs/act/data/iabril/SO/'
 
 cosmology:
 
     CMB:
-        Alens: 0.5
+        Alens: 1.
 
     dust:
 
@@ -67,4 +63,5 @@ cosmology:
 band_names:
     SO: ['LF1', 'LF2', 'MF1', 'MF2', 'UHF1', 'UHF2']
     BICEP: ['95', '150', '220']
+
 
