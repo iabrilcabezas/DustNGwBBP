@@ -1,0 +1,13 @@
+params:
+  niter: 10000
+  nwalk: 24
+  nside: 256
+  
+compsep:
+  lmin: 30
+  lmax: 300
+#  bands: 
+
+bands_iter:
+  so: ['all', ['LF1', 'LF2'], ['MF1', 'MF2'], ['UHF1', 'UHF2']]
+  other: ['all']

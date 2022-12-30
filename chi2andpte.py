@@ -1,3 +1,7 @@
+'''
+chi2 and PTE calculation
+'''
+
 import numpy as np
 from pte.sfid_class_pte import SfClass
 from pte.sfid_class_pte import ptechi2_gvsng

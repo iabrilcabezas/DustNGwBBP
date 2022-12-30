@@ -1,3 +1,8 @@
+'''
+sfid_class_pte
+    module to compute PTE values from gaussian and non-gaussian covariances simulations
+'''
+
 import numpy as np
 from astropy.io import fits
 import sacc
@@ -9,14 +14,14 @@ from utils.params import NSIDE, POLARIZATION_cov
 from utils.binning import rebin, cut_array
 from utils.sed import get_band_names
 
-weight = 'Cl'
+WEIGHT = 'Cl'
 band_names = get_band_names()
 
 class SfClass():
 
     def __init__(self, bands,lmin_bbp, lmax_bbp):
 
-        name_sf = PATH_DICT['output_path'] + '_'.join([NAME_RUN, weight, 'wt']) + '_fid.fits'
+        name_sf = PATH_DICT['output_path'] + '_'.join([NAME_RUN, WEIGHT, 'wt']) + '_fid.fits'
 
         self.s_f = sacc.Sacc.load_fits(name_sf)
         self.s_fg = sacc.Sacc.load_fits(name_sf)
@@ -149,8 +154,8 @@ class SfClass():
 
 def calc_chi2(cell_random, cell_array, invcov, dof_chi2):
 
-    dx = cell_random - cell_array
-    chi2 = np.linalg.multi_dot([dx, invcov, dx])
+    deltax = cell_random - cell_array
+    chi2 = np.linalg.multi_dot([deltax, invcov, deltax])
     pval = stats.chi2.sf(chi2, df = dof_chi2)
 
     return (chi2, pval)

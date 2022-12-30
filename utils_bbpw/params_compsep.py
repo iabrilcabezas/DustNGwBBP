@@ -1,3 +1,8 @@
+'''
+params_compsep
+    returns band parameters for BBCompSep analysis
+'''
+
 from utils.sed import get_band_names
 
 band_names = get_band_names()
@@ -5,10 +10,17 @@ band_names = get_band_names()
 def get_configcompsep(dict_bbcomp):
 
     '''
+    Updates dictionary to include name to identify parameters
+
+    ** Parameters **
     dict_bbcomp: dict
         lmin : 30
         lmax : 300,
         bands: 'all' or ['UHF1', 'UHF2'], etc.
+
+    ** Returns **
+    dict_bbcomp: dict
+        name_config
     '''
 
     bands_bbcomp = dict_bbcomp['bands']
@@ -25,7 +37,9 @@ def get_configcompsep(dict_bbcomp):
 
     name_configcompsep = '_'.join([str(lmin_bbcomp), str(lmax_bbcomp), name_bands])
 
-    return (lmin_bbcomp, lmax_bbcomp, bands_bbcomp, name_configcompsep)
+    dict_bbcomp['name_config'] = name_configcompsep
+
+    return dict_bbcomp
 
 # bbcomp:
 #     lmin: 30
