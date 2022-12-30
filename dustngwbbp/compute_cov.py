@@ -33,7 +33,7 @@ def compute_cov(ctype):
 
     ** Parameters **
 
-    ctype: 'dust' or 'all'
+    ctype: 'd00', 'dc0' or 'dcs'
         type of power spectrum
     '''
 

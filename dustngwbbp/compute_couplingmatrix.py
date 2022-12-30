@@ -1,13 +1,12 @@
 '''
 compute_couplingmatrix
     computes couplingmatrix with namaster
-
 '''
 
 import pymaster as nmt
 import numpy as np
 from utils.namaster import get_bandpowers, get_template_wmask, get_couplingmatrix
-from utils.params import NAME_COUPLINGM, NSIDE, MTYPE, PATH_DICT
+from utils.params import NSIDE, MTYPE
 from utils.params import name_couplingmatrix_w, name_couplingmatrix_wt
 
 def compute_couplingmatrix(**kwargs_dict):

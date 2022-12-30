@@ -39,7 +39,8 @@ def get_namecouplingm(nside, mtype, **kwargs_mask):
     str
     '''
 
-    values = [nside, kwargs_mask['dell_nmt'], mtype, kwargs_mask['apo_deg'], kwargs_mask['smooth_deg']]
+    values = [nside, kwargs_mask['dell_nmt'], mtype, \
+              kwargs_mask['apo_deg'], kwargs_mask['smooth_deg']]
 
 
     return '_'.join(map(str, values))
@@ -97,6 +98,7 @@ def pathnames():
         'output_path': location of file output storage
         'BK15_data': BK15 data (bandpasses, noise)
         'bbpipe_path': path to bbpower code. contains SO bandpasses and noise in examples folder
+        'so_path': path where SO mask is stored
     '''
 
     dict_path = {}
@@ -192,6 +194,8 @@ class PathConfig:
         path to Planck data on perl machine
     camb_cmb_lens_nobb: str
         CMB power spectrum, including lensing, without bb
+    so: str
+        path to SO mask
     '''
 
     def __init__(self, param):
@@ -255,7 +259,7 @@ class BandConfig:
     def __init__(self, param):
         self.so = param['SO']
         self.bicep = param['BICEP']
-    
+
 class CompConfig:
 
     '''
@@ -273,6 +277,13 @@ class CompConfig:
 
 class ExtConfig:
 
+    '''
+    2nd level class of config file
+    contains info on external parameters
+    machine: str, 'perl' or 'cori'
+        machine where code is running
+    '''
+
     def __init__(self, param):
         self.machine = param['machine']
 
@@ -289,7 +300,8 @@ class Config:
     mask_param: mask parameters
     cosmo_param: parameters on CMB and dust P(k)
     band_names: name of bands for different experiments
-
+    components: model components (dust, sync) used
+    external: external parameters
     '''
 
     def __init__(self, param):

@@ -39,7 +39,7 @@ def get_bandpowers(nside, width_ell):
 def get_couplingmatrix(f_a, f_b, bin_bpw):
 
     '''
-    Generates NmtWorkspace to compute and obtain the mode coupling matrix. 
+    Generates NmtWorkspace to compute and obtain the mode coupling matrix.
     The coupling matrix depends only on the masks of the two fields to correlate
 
     Parameters
@@ -71,7 +71,7 @@ def get_mask(nside, mtype, **kwargs):
     nside: int
             resolution
     mtype: str
-            type of mask. 'full' or 'bicep'
+            type of mask. 'full' or 'bicep' or 'so'
     kwargs: dict
             apo_deg: float
                     apodization scale in degrees for mtype == 'bicep'
@@ -87,6 +87,7 @@ def get_mask(nside, mtype, **kwargs):
 
     if mtype == 'full':
 
+        # no regions masked, 'full'
         return np.ones(npix)
 
     if mtype == 'bicep':
@@ -125,6 +126,7 @@ def get_mask(nside, mtype, **kwargs):
 
     if mtype == 'so':
 
+        # read in SO mask (Figure 8 - SO science & forecasts)
         w_so = hp.read_map(PATH_DICT['so_path'] + 'mask_apodized_david_nside512.fits')
         w_so_hi = hp.ud_grade(w_so, NSIDE)
         # smooth the mask

@@ -131,7 +131,19 @@ def add_tracers(ell_array):
 def add_powerspectra(s_d, bpw_freq_sig, leff, do_bin, weight = 'Cl'):
 
     '''
-    add power spectra to sacc
+    Adds power spectra to Sacc object
+
+    ** Parameters **
+    s_d: sacc object
+        object to add P(k)
+    bpw_freq_sig: np.array
+        power spectra that will be added
+    leff: np.array
+        ell each power spectra band corresponds to
+    do_bin: bool
+        if the power spectra is binned, provide window too
+    weight: 'Cl' or 'Dl'
+        binnin of window if do_bin
     '''
 
     if do_bin:
@@ -163,7 +175,19 @@ def add_powerspectra(s_d, bpw_freq_sig, leff, do_bin, weight = 'Cl'):
 def add_noise(lmax, bpw_freq_sig, fsky, do_bin, weight = 'Cl'):
 
     '''
-    add noise
+    Returns noise array according to experiment
+
+    ** Parameters **
+    lmax: int
+        maximum ell to compute noise
+    bpw_freq_sig: np.array
+        provides size of noise array
+    fsky:
+        sky fraction of experiment (noise \propto 1/fsky)
+    do_bin: bool
+        if the noise should be binned
+    weight: 'Cl' or 'Dl'
+        binnin of window if do_bin
     '''
 
     if do_bin:
@@ -213,7 +237,19 @@ def add_noise(lmax, bpw_freq_sig, fsky, do_bin, weight = 'Cl'):
 def get_bpw_freq_sig(ctype, lmax, do_bin, weight = 'Cl'):
 
     '''
-    
+    Computes SED of all components
+    Convolves SED with instrument (bands, CMB units)
+    Computes total signal in each bandpower
+
+    ** Parameters **
+    ctype: 'd00', 'dc0', 'dcs'
+        type of model (dust only, dust + CMB, dust + CMB + sync)
+    lmax: int
+        max ell to compute SED
+    do_bin: bool
+        bin signal with window?
+    weight: 'Cl' or 'Dl'
+        binning of window
     '''
 
     assert POLARIZATION_cov == 'B', 'reading B components but you have specified otherwise'
@@ -265,13 +301,23 @@ def get_bpw_freq_sig(ctype, lmax, do_bin, weight = 'Cl'):
 def compute_cl(ctype, type_cov):
 
     '''
-    because for cov , weight = 'cl'
+    Computes full Cl fits files for BBCompSep (signal [fiducial], noise, and total)
+
+    ** Parameters **
+    ctype: 'dc0', 'dcs'
+        components used in model
+    type_cov: 'w' or 'wt'
+        w: gaussian covariance
+        wt: adds non gaussianity with modulating template
     '''
+
     weight = 'Cl'
     ncomp = ctype_dict_ncomp[ctype]
 
+    # compute power spectra
     bpw_freq_sig = get_bpw_freq_sig(ctype, LMAX, True, weight)
 
+    # add noise
     fsky = nc.get_fsky()
 
     bpw_freq_tot = deepcopy(bpw_freq_sig)
@@ -282,6 +328,7 @@ def compute_cl(ctype, type_cov):
         bpw_freq_noi = add_noise(LMAX, bpw_freq_sig, fsky, True, weight)
         bpw_freq_tot += bpw_freq_noi
 
+    # correct format
     bpw_freq_sig = bpw_freq_sig.reshape([nfreqs*nmodes,nfreqs*nmodes, NBANDS])
     bpw_freq_tot = bpw_freq_tot.reshape([nfreqs*nmodes,nfreqs*nmodes, NBANDS])
     bpw_freq_noi = bpw_freq_noi.reshape([nfreqs*nmodes,nfreqs*nmodes, NBANDS])
@@ -297,6 +344,7 @@ def compute_cl(ctype, type_cov):
     s_f = add_powerspectra(s_f, bpw_freq_sig, LEFF, True, weight)
     s_n = add_powerspectra(s_n, bpw_freq_noi, LEFF, True, weight)
 
+    # add covariance
     assert (ctype != 'd00'), 'adding cov to dust only?'
     ncombs = len(s_d.get_tracer_combinations())
     assert ncombs == len(indices_tr[0]), 'how many maps do you have?'
@@ -311,11 +359,13 @@ def compute_cl(ctype, type_cov):
     #         cov_bpw[ii, :, jj, :] = np.diag(covar)
 
     if type_cov == 'w':
-        cov_bpw_full = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_CELLS, NAME_COUPLINGM, NAME_COMP, 'Cov']) + \
+        cov_bpw_full = fits.open(PATH_DICT['output_path'] + \
+                            '_'.join([NAME_CELLS, NAME_COUPLINGM, NAME_COMP, 'Cov']) + \
                             '_nobin_w.fits')[0].data
 
     if type_cov == 'wt':
-        cov_bpw_full =  fits.open(PATH_DICT['output_path'] + NAME_RUN +'_nobin_fullCov.fits')[0].data
+        cov_bpw_full =  fits.open(PATH_DICT['output_path'] +\
+                            NAME_RUN +'_nobin_fullCov.fits')[0].data
 
     # cut and bin COV MW matrix:
     for i_tr in range(ncombs):
@@ -326,6 +376,7 @@ def compute_cl(ctype, type_cov):
     cov_bpw = cov_bpw.reshape([ncombs * NBANDS, ncombs * NBANDS ])
     s_d.add_covariance(cov_bpw)
 
+    # save files
     print("Writing")
     s_d.save_fits(PATH_DICT['output_path'] + '_'.join([NAME_RUN, weight, type_cov]) + \
                     '_tot.fits', overwrite = True)
@@ -334,13 +385,16 @@ def compute_cl(ctype, type_cov):
     s_n.save_fits(PATH_DICT['output_path'] + '_'.join([NAME_RUN, weight, type_cov]) + \
                     '_noi.fits', overwrite = True)
 
-
-
-
 def compute_cl_nobin(ctype):
 
     '''
-    because for cov , weight = 'cl'
+    Computes fiducial Cl fits file
+    This Cl will go into the computation of the covariance
+    No binning applied
+
+    ** Parameters **
+    ctype: 'd00', 'dc0', 'dcs'
+        components used in model
     '''
 
     lmax = 3 * NSIDE - 1
@@ -367,5 +421,6 @@ def compute_cl_nobin(ctype):
     s_d = add_powerspectra(s_d, bpw_freq_sig, larr_all, False)
 
     print("Writing")
-    s_d.save_fits(PATH_DICT['output_path'] + '_'.join([NAME_CELLS, ctype]) + '_clnobin.fits', overwrite = True)
- 
+    s_d.save_fits(PATH_DICT['output_path'] +\
+                    '_'.join([NAME_CELLS, ctype]) + \
+                    '_clnobin.fits', overwrite = True)

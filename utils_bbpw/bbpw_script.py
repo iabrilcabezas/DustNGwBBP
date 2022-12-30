@@ -6,7 +6,7 @@ bbpw_script
 import yaml
 from utils.params import PATH_DICT, NAME_RUN, NAME_COMP, POLARIZATION_cov
 from utils.sed import get_band_names
-from utils_bbpw.params_compsep import get_configcompsep
+from utils_bbpw.params import get_configcompsep
 from utils_bbpw.dict_bbpw import get_dict_fgmodel, dict_cmbmodel
 
 band_names = get_band_names()
@@ -51,7 +51,7 @@ def write_config_yml_script(type_cov, params_bbpw, dict_compsep,
     else:
         name_config += '_0'
 
-    if (moments & cross):
+    if moments & cross:
         params_bbpw['nwalk'] = 36
 
     name_inputs += '_' + type_cov

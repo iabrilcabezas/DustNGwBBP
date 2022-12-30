@@ -1,3 +1,8 @@
+'''
+dict_bbpw
+    stores and builds default dictionaries to write BBCompSep config file    
+'''
+
 from utils.params import PATH_DICT
 
 dict_comp1 =   {'name': 'Dust',
@@ -32,7 +37,15 @@ dict_cmbmodel = {'cmb_templates': [PATH_DICT['bbpipe_path'] + 'examples/data/cam
 def get_dict_fgmodel(name_comp, cross = False, moments = False):
 
     '''
-    
+    Returns dictionary of foreground model used by BBCompSep according to arguments
+
+    ** Parameters **
+    name_comp: str ('dc0' or 'dcs')
+        Components (dust, or dust + synchrotron) of model
+    cross: bool
+        Include cross term between dust and synchrotron
+    moments: bool
+        Use component separation method
     '''
 
     if cross:

@@ -18,7 +18,7 @@ def get_band_names():
 
     ** Parameters**
     experiment: str
-                'so' or 'bicep'
+                'so' or 'bicep' or 'cmbs4', 'cmbs4d'
 
     **Returns**
     list of band names

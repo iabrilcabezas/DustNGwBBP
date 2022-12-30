@@ -135,7 +135,9 @@ def fsky_fromnoise():
 def get_fsky():
 
     '''
-    return fsky
+    Return fsky
+
+    fsky is read from the provided BICEP files, or fsky = 0.1 for SO
     '''
 
     # mask = get_mask(NSIDE, MTYPE, **config.mask_param.__dict__)

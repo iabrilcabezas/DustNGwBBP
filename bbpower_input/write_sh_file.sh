@@ -17,11 +17,11 @@ mtype=so
 apodeg=5.0
 
 #smooth=40.0
-ctype=dc0
-
 #w_type=wt
+#ctype=dc0
 cross=0
 moments=0
+
 bands=all
 lminbb=30
 lmaxbb=300
@@ -32,10 +32,13 @@ fid=_fid.fits
 
 
 wtypes='w wt'
+ctypes='dc0 dcs'
 mmts='0 M'
 crosses='0 C'
 smoothes=( "10.0" "20.0" "40.0")
 
+for ctype in $ctypes
+do
 for smooth in "${smoothes[@]}"
 do
 #for cross in $crosses
@@ -50,8 +53,8 @@ do
     name_c=${name_run}_${cross}_${moments}_${w_type}_${lminbb}_${lmaxbb}_${bands}
     name_cls=${name_run}_${w_type}
 
-    if [ -f $base_folder/chains/${name_c}.npz* ]; then
-        rm $base_folder/chains/${name_c}.npz*
+    if [ -f ${base_folder}/chains/${name_c}.npz.h5 ]; then
+        rm ${base_folder}/chains/${name_c}.npz*
     fi
 
     # Run pipeline
@@ -59,6 +62,7 @@ do
 done
 #done
 #done
+done
 done
 # This plots the results of the pipeline
 # i'll do the plotting myself, thank you
