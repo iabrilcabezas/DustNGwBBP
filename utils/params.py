@@ -105,6 +105,7 @@ def pathnames():
     bbpipe_path = config.path_param.bbpipe
     output_path = config.path_param.output
     camb_cmb_lens_nobb_path = config.path_param.camb_cmb_lens_nobb
+    so_path = config.path_param.so
 
     if MACHINE == 'cori':
 
@@ -118,6 +119,7 @@ def pathnames():
     dict_path['bbpipe_path'] = bbpipe_path
     dict_path['output_path'] = output_path
     dict_path['camb_cmb_lens_nobb'] = camb_cmb_lens_nobb_path
+    dict_path['so_path'] = so_path
 
     return dict_path
 
@@ -199,6 +201,7 @@ class PathConfig:
         self.planck_path_cori = param['planck_path_cori']
         self.planck_path_perl = param['planck_path_perl']
         self.camb_cmb_lens_nobb = param['camb_cmb_lens_nobb']
+        self.so = param['so_path']
 
 class MaskConfig:
 
@@ -268,13 +271,6 @@ class CompConfig:
         self.sync = param['sync']
         # self.cross = param['cross']
 
-class BBCompConfig:
-
-    def __init__(self, param):
-        self.lmin = param['lmin']
-        self.lmax = param['lmax']
-        self.bands = param['bands']
-
 class ExtConfig:
 
     def __init__(self, param):
@@ -305,7 +301,6 @@ class Config:
         self.cosmo_param  = CosmoConfig(param['cosmology'])
         self.band_names   = BandConfig(param['band_names'])
         self.components   = CompConfig(param['components'])
-        self.bbcomp       = BBCompConfig(param['bbcomp'])
         self.external     = ExtConfig(param['external'])
 
 
@@ -322,10 +317,6 @@ LMIN = config.bpw_param.lmin
 DELL = config.bpw_param.dell
 NBANDS = config.bpw_param.nbands
 POLARIZATION_cov = config.pol_param.pol_cov
-
-LMIN_BBCOMP = config.bbcomp.lmin
-LMAX_BBCOMP = config.bbcomp.lmax
-BANDS_BBCOMP = config.bbcomp.bands
 
 band_names_config = config.band_names
 
@@ -364,12 +355,6 @@ NAME_RUN  = get_namerun(namerun_dict) + '_' + NAME_COMP
 
 name_couplingmatrix_w = PATH_DICT['output_path'] + NAME_COUPLINGM + '_couplingM_w.txt'
 name_couplingmatrix_wt = PATH_DICT['output_path'] + NAME_COUPLINGM + '_couplingM_wt.txt'
-
-if BANDS_BBCOMP != 'all':
-    name_bands =  '_'.join(BANDS_BBCOMP)
-else:
-    name_bands = BANDS_BBCOMP
-name_configcompsep = '_'.join([str(LMIN_BBCOMP), str(LMAX_BBCOMP), name_bands])
 
 print(NAME_RUN)
 print(PATH_DICT)
