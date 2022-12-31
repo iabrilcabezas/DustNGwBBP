@@ -13,14 +13,14 @@ dellnmt=10
 pol=B
 weight=Cl
 
-mtype=so
-apodeg=5.0
+mtype=full
+apodeg=nan
 
 #smooth=40.0
 #w_type=wt
-ctype=dcs
-#cross=0
-moments=M
+#ctype=dcs
+cross=0
+moments=0
 
 bands=all
 lminbb=30
@@ -30,19 +30,18 @@ all=_tot.fits
 noise=_noi.fits 
 fid=_fid.fits
 
-
 wtypes='w wt'
 ctypes='dc0 dcs'
 mmts='0 M'
 crosses='0 C'
 smoothes=( "10.0" "20.0" "40.0")
 
-# for ctype in $ctypes
-# do
+for ctype in $ctypes
+do
 for smooth in "${smoothes[@]}"
 do
-for cross in $crosses
-do
+# for cross in $crosses
+# do
 #for moments in $mmts
 #do
 for w_type in $wtypes

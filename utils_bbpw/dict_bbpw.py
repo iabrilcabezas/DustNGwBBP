@@ -34,30 +34,29 @@ dict_cmbmodel = {'cmb_templates': [PATH_DICT['bbpipe_path'] + 'examples/data/cam
                             'A_lens': ['A_lens', 'tophat', [0.0, 1.0, 2.0]]}}
 
 
-def get_dict_fgmodel(name_comp, cross = False, moments = False):
-
+def get_dict_fgmodel(name_comp, cro, mom):
     '''
     Returns dictionary of foreground model used by BBCompSep according to arguments
 
     ** Parameters **
     name_comp: str ('dc0' or 'dcs')
         Components (dust, or dust + synchrotron) of model
-    cross: bool
+    cr: (cross) bool
         Include cross term between dust and synchrotron
-    moments: bool
+    mom: (moments) bool
         Use component separation method
     '''
 
-    if cross:
+    if cro:
         dict_comp1['cross'] = dict_comp1_cross
 
-    if moments:
+    if mom:
         dict_comp1['moments'] = dict_comp1_moments
         dict_comp2['moments'] = dict_comp2_moments
 
     dict_fgmodel = {'component_1' : dict_comp1}
 
-    if moments:
+    if mom:
         dict_fgmodel['use_moments'] = True
         dict_fgmodel['moments_lmax'] = 300
 

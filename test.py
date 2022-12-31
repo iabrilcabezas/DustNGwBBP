@@ -1,35 +1,42 @@
 '''
 first step
 '''
-from utils.params import config
+#from utils.params import config
 from utils.params import NAME_COMP
 from utils_bbpw.bbpw_script import write_config_yml_script
 from utils_bbpw.params import dict_params_bbpw, dict_ells_bbpw, niterbands
-from dustngwbbp.compute_cl import compute_cl_nobin, compute_cl
-from dustngwbbp.compute_couplingmatrix import compute_couplingmatrix
-from dustngwbbp.compute_cov import compute_cov, get_effective_cov
+#from dustngwbbp.compute_cl import compute_cl_nobin, compute_cl
+#from dustngwbbp.compute_couplingmatrix import compute_couplingmatrix
+#from dustngwbbp.compute_cov import compute_cov, get_effective_cov
 
-compute_couplingmatrix(**config.mask_param.__dict__)
+# compute_couplingmatrix(**config.mask_param.__dict__)
 
-compute_cl_nobin('d00')
-compute_cl_nobin(NAME_COMP)
+# compute_cl_nobin('d00')
+# compute_cl_nobin(NAME_COMP)
 
-compute_cov('d00')
-compute_cov(NAME_COMP)
+# compute_cov('d00')
+# compute_cov(NAME_COMP)
 
-get_effective_cov()
+# get_effective_cov()
 
-compute_cl(NAME_COMP,'w')
-compute_cl(NAME_COMP,'wt')
+# compute_cl(NAME_COMP,'w')
+# compute_cl(NAME_COMP,'wt')
 
 for biter in niterbands:
     dict_ells_bbpw['bands'] = biter
     for template in ['w', 'wt']:
-        for mom in [True, False]:
-            write_config_yml_script(template, params_bbpw = dict_params_bbpw,
+        write_config_yml_script(template, params_bbpw = dict_params_bbpw,
                                     dict_compsep= dict_ells_bbpw,
-                                    moments = mom)
-            if NAME_COMP == 'dcs':
+                                    cros = False, mmt = False) # dc0 or dcs, simple
+        if NAME_COMP == 'dcs':
+            for moment in [True, False]:
                 write_config_yml_script(template, params_bbpw = dict_params_bbpw,
-                                        dict_compsep= dict_ells_bbpw,
-                                        cross = True, moments = mom)
+                                    dict_compsep= dict_ells_bbpw, 
+                                    cros = True, mmt = moment)
+            # if NAME_COMP == 'dcs':
+            #     write_config_yml_script(template, params_bbpw = dict_params_bbpw,
+            #                             dict_compsep= dict_ells_bbpw,
+            #                             cross = True, moments = mom)
+
+# from utils_bbpw.dict_bbpw import get_dict_fgmodel
+# print(get_dict_fgmodel('dcs', cross = True))

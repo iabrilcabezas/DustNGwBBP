@@ -12,8 +12,8 @@ bandpowers:
     nbands: 50
     
 mask:
-    mask_type: 'full'
-    apo_deg: .NAN
+    mask_type: 'so'
+    apo_deg: 5.0
     smooth_deg: 10.
     dell_nmt: 10
 
