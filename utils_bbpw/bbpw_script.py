@@ -7,7 +7,7 @@ import yaml
 from utils.params import PATH_DICT, NAME_RUN, NAME_COMP, POLARIZATION_cov
 from utils.sed import get_band_names
 from utils_bbpw.params import get_dictwnamecompsep
-from utils_bbpw.dict_bbpw import get_dict_fgmodel, dict_cmbmodel
+from utils_bbpw.dict_bbpw import get_dict_fgmodel, DICT_CMBMODEL
 
 band_names = get_band_names()
 
@@ -82,7 +82,7 @@ def write_config_yml_script(type_cov, params_bbpw, dict_compsep,
                                  'l_min': dict_bbcomp['lmin'],
                                  'l_max': dict_bbcomp['lmax'],
                                  'bands': dict_bbcomp['bands'],
-                                 'cmb_model': dict_cmbmodel,
+                                 'cmb_model': DICT_CMBMODEL,
                                  'fg_model': dict_fgmodel}
                                  }
 

@@ -22,17 +22,17 @@ from utils_bbpw.params import dict_params_bbpw, dict_ells_bbpw, niterbands
 # compute_cl(NAME_COMP,'w')
 # compute_cl(NAME_COMP,'wt')
 
-for biter in niterbands:
-    dict_ells_bbpw['bands'] = biter
-    for template in ['w', 'wt']:
-        write_config_yml_script(template, params_bbpw = dict_params_bbpw,
-                                    dict_compsep= dict_ells_bbpw,
-                                    cros = False, mmt = False) # dc0 or dcs, simple
-        if NAME_COMP == 'dcs':
-            for moment in [True, False]:
-                write_config_yml_script(template, params_bbpw = dict_params_bbpw,
-                                    dict_compsep= dict_ells_bbpw, 
-                                    cros = True, mmt = moment)
+biter = 'all'#for biter in niterbands:
+dict_ells_bbpw['bands'] = biter
+for template in ['w', 'wt']:
+    write_config_yml_script(template, params_bbpw = dict_params_bbpw,
+                                dict_compsep= dict_ells_bbpw,
+                                cros = False, mmt = False) # dc0 or dcs, simple
+    if NAME_COMP == 'dcs':
+        for moment in [True, False]:
+            write_config_yml_script(template, params_bbpw = dict_params_bbpw,
+                                dict_compsep= dict_ells_bbpw, 
+                                cros = True, mmt = moment)
             # if NAME_COMP == 'dcs':
             #     write_config_yml_script(template, params_bbpw = dict_params_bbpw,
             #                             dict_compsep= dict_ells_bbpw,
