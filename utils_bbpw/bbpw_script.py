@@ -6,7 +6,7 @@ bbpw_script
 import yaml
 from utils.params import PATH_DICT, NAME_RUN, NAME_COMP, POLARIZATION_cov
 from utils.sed import get_band_names
-from utils_bbpw.params import get_configcompsep
+from utils_bbpw.params import get_dictwnamecompsep
 from utils_bbpw.dict_bbpw import get_dict_fgmodel, dict_cmbmodel
 
 band_names = get_band_names()
@@ -35,7 +35,7 @@ def write_config_yml_script(type_cov, params_bbpw, dict_compsep,
         nwalk: 24
     '''
 
-    dict_bbcomp = dict(get_configcompsep(dict_compsep))
+    dict_bbcomp = dict(get_dictwnamecompsep(dict_compsep))
 
     name_inputs = '_'.join([NAME_RUN, 'Cl'])
     name_config = '_'.join([NAME_RUN, 'Cl'])

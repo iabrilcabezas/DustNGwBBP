@@ -9,7 +9,7 @@ from utils.sed import get_band_names
 
 band_names = get_band_names()
 
-def get_configcompsep(dict_bbcomp):
+def get_dictwnamecompsep(dict_bbcomp):
 
     '''
     Updates dictionary to include name to identify parameters in

@@ -14,7 +14,7 @@ bandpowers:
 mask:
     mask_type: 'full'
     apo_deg: .NAN
-    smooth_deg: 40.
+    smooth_deg: 10.
     dell_nmt: 10
 
 polarization:
@@ -22,7 +22,7 @@ polarization:
 
 components:
     dust: True
-    sync: False
+    sync: True
 
 paths:
     output_path: '/global/cfs/cdirs/act/data/iabril/BBPower/pipeline_test/'

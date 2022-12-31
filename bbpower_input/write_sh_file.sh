@@ -18,9 +18,9 @@ apodeg=5.0
 
 #smooth=40.0
 #w_type=wt
-#ctype=dc0
-cross=0
-moments=0
+ctype=dcs
+#cross=0
+moments=M
 
 bands=all
 lminbb=30
@@ -37,12 +37,12 @@ mmts='0 M'
 crosses='0 C'
 smoothes=( "10.0" "20.0" "40.0")
 
-for ctype in $ctypes
-do
+# for ctype in $ctypes
+# do
 for smooth in "${smoothes[@]}"
 do
-#for cross in $crosses
-#do
+for cross in $crosses
+do
 #for moments in $mmts
 #do
 for w_type in $wtypes
