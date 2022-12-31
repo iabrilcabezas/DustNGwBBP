@@ -3,6 +3,7 @@ bbpw_script
     writes config .yml file required by BBPower
 '''
 
+from copy import deepcopy
 import yaml
 from utils.params import PATH_DICT, NAME_RUN, NAME_COMP, POLARIZATION_cov
 from utils.sed import get_band_names
@@ -34,6 +35,7 @@ def write_config_yml_script(type_cov, params_bbpw, dict_compsep,
         niters: int(1e3)
         nwalk: 24
     '''
+    fun_params_bbpw = deepcopy(params_bbpw)
 
     dict_bbcomp = dict(get_dictwnamecompsep(dict_compsep))
 
@@ -52,7 +54,7 @@ def write_config_yml_script(type_cov, params_bbpw, dict_compsep,
         name_config += '_0'
 
     if mmt & cros:
-        params_bbpw['nwalk'] = 36
+        fun_params_bbpw['nwalk'] = 36
 
     name_inputs += '_' + type_cov
     path_inputs = PATH_DICT['output_path'] +  name_inputs
@@ -62,7 +64,7 @@ def write_config_yml_script(type_cov, params_bbpw, dict_compsep,
 
     dict_fgmodel = get_dict_fgmodel(NAME_COMP, cro = cros, mom = mmt)
 
-    dict_config = {'global': {'nside': params_bbpw['nside'], 'compute_dell': False},
+    dict_config = {'global': {'nside': fun_params_bbpw['nside'], 'compute_dell': False},
                    'modules': 'bbpower',
                    'launcher': 'local',
                    'stages': [{'name': 'BBCompSep', 'nprocess': 1}],
@@ -75,8 +77,8 @@ def write_config_yml_script(type_cov, params_bbpw, dict_compsep,
                    'log_dir': PATH_DICT['output_path'] + 'outputs/',
                    'pipeline_log': PATH_DICT['output_path'] + 'outputs/log.txt',
                    'BBCompSep': {'sampler': 'emcee',
-                                 'nwalkers': params_bbpw['nwalk'],
-                                 'n_iters': params_bbpw['niter'],
+                                 'nwalkers': fun_params_bbpw['nwalk'],
+                                 'n_iters': fun_params_bbpw['niter'],
                                  'likelihood_type': 'h&l',
                                  'pol_channels': ['B'],
                                  'l_min': dict_bbcomp['lmin'],

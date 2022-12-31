@@ -22,7 +22,7 @@ polarization:
 
 components:
     dust: True
-    sync: True
+    sync: False
 
 paths:
     output_path: '/global/cfs/cdirs/act/data/iabril/BBPower/pipeline_test/'
