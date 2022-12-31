@@ -53,7 +53,7 @@ def write_config_yml_script(type_cov, params_bbpw, dict_compsep,
     else:
         name_config += '_0'
 
-    if mmt & cros:
+    if NAME_COMP == 'dcs': #mmt & cros:
         fun_params_bbpw['nwalk'] = 36
 
     name_inputs += '_' + type_cov

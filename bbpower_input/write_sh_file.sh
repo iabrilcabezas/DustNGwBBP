@@ -13,8 +13,8 @@ dellnmt=10
 pol=B
 weight=Cl
 
-mtype=full
-apodeg=nan
+mtype=so
+apodeg=5.0
 
 #smooth=40.0
 #w_type=wt
@@ -48,9 +48,9 @@ for w_type in $wtypes
 do
 
     name_run=${experiment}_${nside}_${lmin}_${nbands}_${dell}_${mtype}_${apodeg}_${smooth}_${dellnmt}_${pol}_${ctype}_${weight}
-
     name_c=${name_run}_${cross}_${moments}_${w_type}_${lminbb}_${lmaxbb}_${bands}
     name_cls=${name_run}_${w_type}
+    echo ${name_c}
 
     if [ -f ${base_folder}/chains/${name_c}.npz.h5 ]; then
         rm ${base_folder}/chains/${name_c}.npz*

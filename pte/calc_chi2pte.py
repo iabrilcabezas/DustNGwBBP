@@ -1,7 +1,7 @@
 '''
 function to do chi2 and PTE calculation
 '''
-
+from copy import deepcopy
 import numpy as np
 from pte.sfid_class_pte import SfClass
 from pte.sfid_class_pte import ptechi2_gvsng
@@ -24,7 +24,7 @@ def get_chi2andpte(dict_compsep, nsims= int(1e4)):
     '''
 
     # include name of band+ell specification in dictionary
-    dict_bbcomp = dict(get_dictwnamecompsep(dict_compsep))
+    dict_bbcomp = deepcopy(dict(get_dictwnamecompsep(dict_compsep)))
 
     # Sfclass object with all bands
     s_fid_all = SfClass(bands = 'all', \
@@ -38,7 +38,7 @@ def get_chi2andpte(dict_compsep, nsims= int(1e4)):
         bands_sf = [band_dict.get(key) for key in dict_bbcomp['bands']]
         # Sfclass object with user-specified bands (if != all)
         s_fid = SfClass(bands = bands_sf , \
-                    lmin_bbp = dict_bbcomp['lmax'], lmax_bbp = dict_bbcomp['lmax'])
+                    lmin_bbp = dict_bbcomp['lmin'], lmax_bbp = dict_bbcomp['lmax'])
 
     else:
         s_fid = s_fid_all

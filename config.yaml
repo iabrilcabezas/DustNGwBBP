@@ -14,7 +14,7 @@ bandpowers:
 mask:
     mask_type: 'so'
     apo_deg: 5.0
-    smooth_deg: 10.
+    smooth_deg: 40.
     dell_nmt: 10
 
 polarization:

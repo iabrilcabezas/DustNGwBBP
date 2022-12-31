@@ -7,10 +7,8 @@ import numpy as np
 from astropy.io import fits
 import sacc
 from scipy import stats
-
 from utils.params import NAME_CELLS, PATH_DICT, NAME_RUN, NAME_COUPLINGM, NAME_COMP
 from utils.params import NSIDE, POLARIZATION_cov
-
 from utils.binning import rebin, cut_array
 from utils.sed import get_band_names
 
@@ -68,8 +66,9 @@ class SfClass():
         # name of bands [user selection]
         if bands == 'all':
             self.tr_names = sorted(list(self.s_f.tracers.keys()))
+
         else:
-            self.tr_names = bands
+            self.tr_names = sorted(list(bands))
 
         self.pols = [POLARIZATION_cov]   # polarization
         self.nfreqs = len(self.tr_names) # number of bands [user selection]
@@ -91,6 +90,7 @@ class SfClass():
         # cross is still full (all bands)
         cov_g = np.zeros([ncross, self.n_bpws, ncross, self.n_bpws])
         cov_ng =  np.zeros([ncross, self.n_bpws, ncross, self.n_bpws])
+
         # cut and bin COV MW matrix:
         for i_tr in range(ncross):
             for j_tr in range(ncross):
