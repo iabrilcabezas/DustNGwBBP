@@ -1,6 +1,6 @@
 #!/bin/bash
 
-base_folder=/global/cfs/cdirs/act/data/iabril/BBPower/pipeline_test
+base_folder=/global/cfs/cdirs/act/data/iabril/BBPower/230111
 #input_folder=/global/common/software/act/iabril/python/DustNGwBBP/bbpower_input
 
 machine=perl
@@ -15,12 +15,11 @@ weight=Cl
 
 mtype=so
 apodeg=5.0
-
-#smooth=40.0
+smooth=20.0
 #w_type=wt
-#ctype=dcs
-cross=0
-moments=0
+ctype=dcs
+cross=C
+#moments=0
 
 bands=all
 lminbb=30
@@ -36,14 +35,14 @@ mmts='0 M'
 crosses='0 C'
 smoothes=( "10.0" "20.0" "40.0")
 
-for ctype in $ctypes
-do
-for smooth in "${smoothes[@]}"
-do
+#for ctype in $ctypes
+#do
+#for smooth in "${smoothes[@]}"
+#do
 # for cross in $crosses
 # do
-#for moments in $mmts
-#do
+for moments in $mmts
+do
 for w_type in $wtypes
 do
 
@@ -59,10 +58,10 @@ do
     # Run pipeline
     python -m bbpower BBCompSep --cells_coadded=$base_folder/${name_cls}${all}  --cells_noise=$base_folder/${name_cls}${noise} --cells_fiducial=$base_folder/${name_cls}${fid}    --config=$base_folder/config_files/${name_c}.yml      --param_chains=$base_folder/chains/${name_c}.npz       --config_copy=$base_folder/temp/config_copy.yml
 done
+done
 #done
 #done
-done
-done
+#done
 # This plots the results of the pipeline
 # i'll do the plotting myself, thank you
 # python -m bbpower BBPlotter  --cells_coadded_total=$base_folder/$name_run$all  --cells_coadded=$base_folder/$name_run$all   --cells_null=$base_folder/$name_run$all     --cells_noise=$base_folder/$name_run$noi        --cells_fiducial=$base_folder/$name_run$fid           --param_chains=$base_folder/chains/${name_chain}.npz            --plots=$base_folder/temp/plots                  --plots_page=$base_folder/temp/plots/plots_page.html                     --config=$base_folder/config_files/${name_config}.yml
