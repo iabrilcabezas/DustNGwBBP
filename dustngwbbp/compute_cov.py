@@ -20,7 +20,7 @@ nmodes = len(POLARIZATION_cov)
 
 lmax, _, _, _ = get_ell_arrays(LMIN, DELL, NBANDS)
 
-def compute_cov(ctype):
+def compute_cov(ctype, w2_factor):
 
     '''
     Compute covariance (with and without modulating template) of ctype power spectrum
@@ -77,8 +77,8 @@ def compute_cov(ctype):
 
     # compute prefactor of covariance
     prefactor_l = np.zeros([nells, nells]) + np.nan
-    fsky = get_fsky()
-    sum_m_f = 1/ (2 * ellcl + 1) / fsky
+    # fsky = get_fsky()
+    sum_m_f = 1/ (2 * ellcl + 1) / ( w2_factor**2 ) # / fsky
 
     for i in range(int(nells)):
         prefactor_l[:, i ] = sum_m_f[i] * np.ones(nells)

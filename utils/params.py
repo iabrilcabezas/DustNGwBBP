@@ -369,7 +369,7 @@ name_couplingmatrix_w = PATH_DICT['output_path'] + NAME_COUPLINGM + '_couplingM_
 name_couplingmatrix_wt = PATH_DICT['output_path'] + NAME_COUPLINGM + '_couplingM_wt.txt'
 
 print(NAME_RUN)
-print(PATH_DICT)
-print(NAME_COMP)
-print(NAME_COUPLINGM)
-print(NAME_CELLS)
+# print(PATH_DICT)
+# print(NAME_COMP)
+# print(NAME_COUPLINGM)
+# print(NAME_CELLS)

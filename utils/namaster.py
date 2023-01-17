@@ -178,4 +178,4 @@ def get_template_wmask(nside, mtype, **kwargs):
     check = np.isclose(wtilde2_omega_mask, w2_omega_mask)
     assert check, "<w2> != <w2> ERROR"
 
-    return (template, w_mask)
+    return (template, w_mask, w2_omega_mask)
