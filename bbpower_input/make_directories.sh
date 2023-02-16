@@ -1,6 +1,6 @@
 #!/bin/bash
 
-name_run=230111
+name_run=230215_now2factor/crazy_cov/
 base_folder=/global/cfs/cdirs/act/data/iabril/BBPower/
 
 cd ${base_folder}
