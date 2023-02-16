@@ -8,7 +8,7 @@ from astropy.io import fits
 import sacc
 from scipy import stats
 from utils.params import NAME_CELLS, PATH_DICT, NAME_RUN, NAME_COUPLINGM, NAME_COMP
-from utils.params import NSIDE, POLARIZATION_cov
+from utils.params import NSIDE, POLARIZATION_cov, NPARAMS
 from utils.binning import rebin, cut_array
 from utils.sed import get_band_names
 
@@ -230,7 +230,7 @@ def calc_chi2(cell_random, cell_array, invcov, dof_chi2):
     invcov: np.array
         inverse covariance
     dof_chi2: int
-        number of degrees of freedom of data for chi2, that is, dof - 1
+        number of degrees of freedom of data for chi2, that is, dof - nparams
 
     ** Returns **
     chi2: float
@@ -270,7 +270,7 @@ def ptechi2_gvsng(nsims, sfclassobj):
 
     # obtain cell array and covariances
     cell_array, _, bbcovar_ng, invcov_g, invcov_ng = sfclassobj.get_cellandcov()
-    dof_chi2 = sfclassobj.dof - 1
+    dof_chi2 = sfclassobj.dof - NPARAMS
 
     # iniciate arrays
     chi_ng_array = np.zeros(nsims) + np.nan

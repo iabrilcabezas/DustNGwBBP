@@ -1,10 +1,11 @@
 ## all stages
 external:
-    machine: 'perl'
+    machine: 'cori'
 
 global:
     experiment: 'so'
     nside: 256
+    cov_correction: 'w2' # w2 factor, fsky, none (null)
 
 bandpowers:
     lmin: 2
@@ -25,7 +26,7 @@ components:
     sync: True
 
 paths:
-    output_path: '/global/cfs/cdirs/act/data/iabril/BBPower/230111/'
+    output_path: '/global/cfs/cdirs/act/data/iabril/BBPower/230215_now2factor/'
     bicep_BK15: '/global/cfs/cdirs/act/data/iabril/BICEP/'
     bbpipe_path: '/global/cfs/cdirs/act/software/iabril/condaenvs/github_reps/BBPower/'
     planck_path_cori: '/global/cscratch1/sd/iabril/PlanckData/'
@@ -40,7 +41,7 @@ cosmology:
 
     dust:
 
-        A_dust_BB: 5.0 # from BICEP field 1510.09217
+        A_dust_BB: 5. # from BICEP field 1510.09217
         EB_dust: 2. # PL amplitude 1801.04945
         alpha_dust_EE: -0.42 # PL exponent 1801.04945
         alpha_dust_BB: -0.2 # PL exponent 1801.04945
@@ -59,6 +60,8 @@ cosmology:
 
     model:
         lnorm_PL: 80.        # PL param 1801.04945
+    
+    nparams: 8 # + 1 if cross, + 4 if moments
 
 band_names:
     SO: ['LF1', 'LF2', 'MF1', 'MF2', 'UHF1', 'UHF2']
