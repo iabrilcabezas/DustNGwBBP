@@ -1,6 +1,6 @@
 '''
 dict_bbpw
-    stores and builds default dictionaries to write BBCompSep config file    
+    stores and builds default dictionaries to write BBCompSep config file
 '''
 from copy import deepcopy
 from utils.params import PATH_DICT

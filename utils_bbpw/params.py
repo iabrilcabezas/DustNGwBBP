@@ -9,6 +9,9 @@ from utils.sed import get_band_names
 
 band_names = get_band_names()
 
+SO_bands_equivalent = {'LF1': 'band1', 'LF2':'band2', 'MF1':'band3',
+                       'MF2': 'band4', 'UHF1': 'band5', 'UHF2':'band6'}
+
 def get_dictwnamecompsep(dict_bbcomp):
 
     '''
@@ -41,6 +44,12 @@ def get_dictwnamecompsep(dict_bbcomp):
     name_configcompsep = '_'.join([str(lmin_bbcomp), str(lmax_bbcomp), name_bands])
 
     dict_bbcomp['name_config'] = name_configcompsep
+
+    # update name of bands to match tracer:
+    if bands_bbcomp != 'all':
+        dict_bbcomp['bands_tr'] = [SO_bands_equivalent.get(b) for b in bands_bbcomp]
+    else:
+        dict_bbcomp['bands_tr'] = 'all'
 
     return dict_bbcomp
 

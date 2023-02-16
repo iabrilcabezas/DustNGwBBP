@@ -36,8 +36,9 @@ def write_config_yml_script(type_cov, params_bbpw, dict_compsep,
         nwalk: 24
     '''
     fun_params_bbpw = deepcopy(params_bbpw)
-
+    print(dict_compsep)
     dict_bbcomp = dict(get_dictwnamecompsep(dict_compsep))
+    print(dict_bbcomp)
 
     name_inputs = '_'.join([NAME_RUN, 'Cl'])
     name_config = '_'.join([NAME_RUN, 'Cl'])
@@ -83,7 +84,7 @@ def write_config_yml_script(type_cov, params_bbpw, dict_compsep,
                                  'pol_channels': ['B'],
                                  'l_min': dict_bbcomp['lmin'],
                                  'l_max': dict_bbcomp['lmax'],
-                                 'bands': dict_bbcomp['bands'],
+                                 'bands': dict_bbcomp['bands_tr'],
                                  'cmb_model': DICT_CMBMODEL,
                                  'fg_model': dict_fgmodel}
                                  }
