@@ -10,6 +10,25 @@ from astropy import units as u
 from astropy.coordinates import SkyCoord
 from utils.params import PATH_DICT, NSIDE
 
+
+def hp_rotate(map_hp, coord):
+    """Rotate healpix map between coordinate systems
+
+    :param map_hp: A healpix map in RING ordering
+    :param coord: A len(2) list of either 'G', 'C', 'E'
+    Galactic, equatorial, ecliptic, eg ['G', 'C'] converts
+    galactic to equatorial coordinates
+    :returns: A rotated healpix map
+    """
+    if map_hp is None:
+        return None
+    if coord[0] == coord[1]:
+        return map_hp
+    r = hp.rotator.Rotator(coord=coord)
+    new_map = r.rotate_map_pixel(map_hp)
+    return new_map
+
+
 def get_bandpowers(nside, width_ell):
 
     '''
@@ -128,7 +147,11 @@ def get_mask(nside, mtype, **kwargs):
 
         # read in SO mask (Figure 8 - SO science & forecasts)
         w_so = hp.read_map(PATH_DICT['so_path'] + 'mask_apodized_david_nside512.fits')
-        w_so_hi = hp.ud_grade(w_so, NSIDE)
+
+        # RA/DEC to Galactic
+        mask_so_gal = hp_rotate(w_so, coord = ['E','G'])
+
+        w_so_hi = hp.ud_grade(mask_so_gal, NSIDE)
         # smooth the mask
         w_so_apo = nmt.mask_apodization(w_so_hi, kwargs['apo_deg'], apotype="C1")
 
