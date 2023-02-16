@@ -143,6 +143,7 @@ class GlobalConfig:
     def __init__(self, param):
         self.experiment = param['experiment']
         self.nside      = param['nside']
+        self.cov_corr   = param['cov_correction']
 
 class BpwConfig:
 
@@ -244,6 +245,7 @@ class CosmoConfig:
         self.dust = param['dust']
         self.sync = param['sync']
         self.model = param['model']
+        self.nparams = param['nparams']
 
 class BandConfig:
 
@@ -323,6 +325,7 @@ with open('config.yaml', 'r', encoding = 'utf-8') as config_file:
 MACHINE = config.external.machine
 NSIDE   = config.global_param.nside
 EXPERIMENT = config.global_param.experiment
+COV_CORR = config.global_param.cov_corr
 MTYPE   = config.mask_param.mask_type
 DELL_NMT = config.mask_param.dell_nmt
 LMIN = config.bpw_param.lmin
@@ -338,6 +341,7 @@ dust_params = cosmo_params.dust
 sync_params = cosmo_params.sync
 model_params = cosmo_params.model
 
+NPARAMS = cosmo_params.nparams
 A_dust_BB = dust_params['A_dust_BB']
 EB_dust = dust_params['EB_dust']
 alpha_dust_EE = dust_params['alpha_dust_EE']
