@@ -1,11 +1,12 @@
 #!/bin/bash
 
-base_folder=/global/cfs/cdirs/act/data/iabril/BBPower/230111
+base_folder=/global/cfs/cdirs/act/data/iabril/BBPower/230215_now2factor
 #input_folder=/global/common/software/act/iabril/python/DustNGwBBP/bbpower_input
 
 machine=perl
 experiment=so
 nside=256
+cov_corr=None
 lmin=2
 nbands=50
 dell=10
@@ -18,10 +19,10 @@ apodeg=5.0
 smooth=20.0
 #w_type=wt
 ctype=dcs
-cross=C
-#moments=0
+cross=0
+moments=0
 
-bands=all
+bands=all #MF1_UHF2 #
 lminbb=30
 lmaxbb=300
 
@@ -41,24 +42,26 @@ smoothes=( "10.0" "20.0" "40.0")
 #do
 # for cross in $crosses
 # do
-for moments in $mmts
-do
-for w_type in $wtypes
-do
+#for moments in $mmts
+#do
+#for w_type in $wtypes
+#do
 
-    name_run=${experiment}_${nside}_${lmin}_${nbands}_${dell}_${mtype}_${apodeg}_${smooth}_${dellnmt}_${pol}_${ctype}_${weight}
-    name_c=${name_run}_${cross}_${moments}_${w_type}_${lminbb}_${lmaxbb}_${bands}
-    name_cls=${name_run}_${w_type}
-    echo ${name_c}
+w_type=w
 
-    if [ -f ${base_folder}/chains/${name_c}.npz.h5 ]; then
-        rm ${base_folder}/chains/${name_c}.npz*
-    fi
+name_run=${experiment}_${nside}_${cov_corr}_${lmin}_${nbands}_${dell}_${mtype}_${apodeg}_${smooth}_${dellnmt}_${pol}_${ctype}_${weight}
+name_c=${name_run}_${cross}_${moments}_${w_type}_${lminbb}_${lmaxbb}_${bands}
+name_cls=${name_run}_${w_type}
+echo ${name_c}
 
-    # Run pipeline
-    python -m bbpower BBCompSep --cells_coadded=$base_folder/${name_cls}${all}  --cells_noise=$base_folder/${name_cls}${noise} --cells_fiducial=$base_folder/${name_cls}${fid}    --config=$base_folder/config_files/${name_c}.yml      --param_chains=$base_folder/chains/${name_c}.npz       --config_copy=$base_folder/temp/config_copy.yml
-done
-done
+if [ -f ${base_folder}/chains/${name_c}.npz.h5 ]; then
+    rm ${base_folder}/chains/${name_c}.npz*
+fi
+
+# Run pipeline
+python -m bbpower BBCompSep --cells_coadded=$base_folder/${name_cls}${all}  --cells_noise=$base_folder/${name_cls}${noise} --cells_fiducial=$base_folder/${name_cls}${fid}    --config=$base_folder/config_files/${name_c}.yml      --param_chains=$base_folder/chains/${name_c}.npz       --config_copy=$base_folder/temp/config_copy.yml
+#done
+#done
 #done
 #done
 #done
