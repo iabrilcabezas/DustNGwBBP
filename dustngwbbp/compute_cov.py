@@ -7,7 +7,7 @@ compute_cov
 import numpy as np
 import sacc
 from astropy.io import fits
-from utils.params import NBANDS, NSIDE, LMIN, DELL, POLARIZATION_cov
+from utils.params import NBANDS, NSIDE, LMIN, DELL, POLARIZATION_cov, COV_CORR
 from utils.params import PATH_DICT, NAME_RUN, NAME_CELLS, NAME_COUPLINGM, NAME_COMP
 from utils.params import name_couplingmatrix_w, name_couplingmatrix_wt
 from utils.sed import get_band_names
@@ -77,8 +77,15 @@ def compute_cov(ctype, w2_factor):
 
     # compute prefactor of covariance
     prefactor_l = np.zeros([nells, nells]) + np.nan
-    # fsky = get_fsky()
-    sum_m_f = 1/ (2 * ellcl + 1) / ( w2_factor**2 ) # / fsky
+
+    sum_m_f = 1 / (2 * ellcl + 1)
+
+    if COV_CORR == 'fsky':
+        fsky = get_fsky()
+        sum_m_f /= fsky
+
+    elif COV_CORR == 'w2':
+        sum_m_f /= ( w2_factor**2 )
 
     for i in range(int(nells)):
         prefactor_l[:, i ] = sum_m_f[i] * np.ones(nells)
@@ -147,6 +154,55 @@ def get_effective_cov():
     # Cov = Cov(all, gaussian) + [ Cov(dust, non gaussian) - Cov(dust, gaussian) ]
     total_cov= np.add(cov_allw, np.subtract(cov_dustwt, cov_dustw))
 
+    # save to fits file
+    hdu_cov = fits.PrimaryHDU(total_cov)
+    hdu_cov.writeto(PATH_DICT['output_path'] + NAME_RUN + '_nobin_fullCov.fits', overwrite = True)
+
+def get_crazy_cov(covtype):
+
+    '''
+
+    Adds crazy covariance of dust to full Covariance
+
+    ** Parameters **
+    covtype: str, 'uniform' or 'offset'
+    '''
+    N_offset = 30
+    corr_uniform = 0.1
+    corr_offset = 0.5
+    # read in precomputed gaussian cov
+    hdu_dustw = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_CELLS, NAME_COUPLINGM, 'd00', 'Cov']) +\
+                            '_nobin_w.fits')
+    hdu_all = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_CELLS, NAME_COUPLINGM, NAME_COMP, 'Cov']) + \
+                            '_nobin_w.fits')
+
+    cov_dustw = hdu_dustw[0].data
+    cov_allw = hdu_all[0].data
+
+    cross, Nell = cov_dustw.shape[:2]
+
+    cov_dustNG = np.zeros_like(cov_dustw)
+
+    for x in range(cross):
+        for y in range(cross):
+            np.fill_diagonal(cov_dustNG[x,:,y,:], np.diag(cov_dustw[x,:,y,:]))
+
+            if covtype == 'uniform':
+
+                for i in range(Nell - 1):
+                    for j in range(i+1, Nell):
+                        cov_dustNG[x,i, y,j] = corr_uniform * np.sqrt( cov_dustNG[x,i,y,i] * cov_dustNG[x,j,y,j] )
+                        cov_dustNG[x,j,y,i]  = cov_dustNG[x,i,y,j]
+
+            if covtype == 'offset':
+
+                for n in range(N_offset):
+                    for i,j in zip(range(Nell - 1), range(n+1, Nell)):
+                        cov_dustNG[x,i,y,j] = corr_offset * np.sqrt( cov_dustNG[x,i,y,i] * cov_dustNG[x,j,y,j] )
+                        cov_dustNG[x,j,y,i]  = cov_dustNG[x,i,y,j]
+
+    # Cov = Cov(all, gaussian) + [ Cov(dust, non gaussian) - Cov(dust, gaussian) ]
+    total_cov= np.add(cov_allw, np.subtract(cov_dustNG, cov_dustw))
     # save to fits file
     hdu_cov = fits.PrimaryHDU(total_cov)
     hdu_cov.writeto(PATH_DICT['output_path'] + NAME_RUN + '_nobin_fullCov.fits', overwrite = True)
