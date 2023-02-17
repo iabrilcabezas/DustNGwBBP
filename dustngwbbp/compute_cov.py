@@ -41,7 +41,7 @@ def compute_cov(ctype, w2_factor):
     name_pol_cov = 'cl_' + 2 * POLARIZATION_cov.lower()
 
     # read in cells
-    s_d = sacc.Sacc.load_fits(PATH_DICT['output_path'] + '_'.join([NAME_CELLS, ctype]) + '_clnobin.fits')
+    s_d = sacc.Sacc.load_fits(PATH_DICT['output_path'] + '_'.join([NAME_RUN, ctype]) + '_clnobin.fits')
     # read-in coupling matrices
     mw2_matrix = np.loadtxt(name_couplingmatrix_w)
     mwt2_matrix = np.loadtxt(name_couplingmatrix_wt)
@@ -119,9 +119,9 @@ def compute_cov(ctype, w2_factor):
     hdu_w = fits.PrimaryHDU(cov_w)
     hdu_wt = fits.PrimaryHDU(cov_wt)
 
-    hdu_w.writeto(PATH_DICT['output_path'] + '_'.join([NAME_CELLS, NAME_COUPLINGM, ctype, 'Cov']) + \
+    hdu_w.writeto(PATH_DICT['output_path'] + '_'.join([NAME_RUN, ctype, 'Cov']) + \
                     '_nobin_w.fits', overwrite = True)
-    hdu_wt.writeto(PATH_DICT['output_path'] + '_'.join([NAME_CELLS, NAME_COUPLINGM, ctype, 'Cov']) +\
+    hdu_wt.writeto(PATH_DICT['output_path'] + '_'.join([NAME_RUN, ctype, 'Cov']) +\
                     '_nobin_wt.fits', overwrite = True)
 
 
@@ -138,11 +138,11 @@ def get_effective_cov():
     larr_all = np.arange(3 * NSIDE)
 
     # read-in precomputed covariances
-    hdu_dustw = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_CELLS, NAME_COUPLINGM, 'd00', 'Cov']) +\
+    hdu_dustw = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_RUN, 'd00', 'Cov']) +\
                             '_nobin_w.fits')
-    hdu_dustwt = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_CELLS, NAME_COUPLINGM, 'd00', 'Cov']) +\
+    hdu_dustwt = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_RUN, 'd00', 'Cov']) +\
                             '_nobin_wt.fits')
-    hdu_all = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_CELLS, NAME_COUPLINGM, NAME_COMP, 'Cov']) + \
+    hdu_all = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_RUN, NAME_COMP, 'Cov']) + \
                             '_nobin_w.fits')
 
     cov_dustw = hdu_dustw[0].data
@@ -171,9 +171,9 @@ def get_crazy_cov(covtype):
     corr_uniform = 0.1
     corr_offset = 0.5
     # read in precomputed gaussian cov
-    hdu_dustw = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_CELLS, NAME_COUPLINGM, 'd00', 'Cov']) +\
+    hdu_dustw = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_RUN, 'd00', 'Cov']) +\
                             '_nobin_w.fits')
-    hdu_all = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_CELLS, NAME_COUPLINGM, NAME_COMP, 'Cov']) + \
+    hdu_all = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_RUN, NAME_COMP, 'Cov']) + \
                             '_nobin_w.fits')
 
     cov_dustw = hdu_dustw[0].data

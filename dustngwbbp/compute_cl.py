@@ -360,7 +360,7 @@ def compute_cl(ctype, type_cov):
 
     if type_cov == 'w':
         cov_bpw_full = fits.open(PATH_DICT['output_path'] + \
-                            '_'.join([NAME_CELLS, NAME_COUPLINGM, NAME_COMP, 'Cov']) + \
+                            '_'.join([NAME_RUN, NAME_COMP, 'Cov']) + \
                             '_nobin_w.fits')[0].data
 
     if type_cov == 'wt':
@@ -422,5 +422,5 @@ def compute_cl_nobin(ctype):
 
     print("Writing")
     s_d.save_fits(PATH_DICT['output_path'] +\
-                    '_'.join([NAME_CELLS, ctype]) + \
+                    '_'.join([NAME_RUN, ctype]) + \
                     '_clnobin.fits', overwrite = True)
