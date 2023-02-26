@@ -7,7 +7,7 @@ from utils_bbpw.bbpw_script import write_config_yml_script
 from utils_bbpw.params import dict_params_bbpw, dict_ells_bbpw, niterbands
 from dustngwbbp.compute_cl import compute_cl_nobin, compute_cl
 from dustngwbbp.compute_couplingmatrix import compute_couplingmatrix
-from dustngwbbp.compute_cov import compute_cov, get_effective_cov, get_crazy_cov
+from dustngwbbp.compute_cov import compute_cov, get_effective_cov # , get_crazy_cov
 
 w2_mean = compute_couplingmatrix(**config.mask_param.__dict__)
 
