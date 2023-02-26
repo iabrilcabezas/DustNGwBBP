@@ -1,0 +1,21 @@
+global:
+  freq: 353
+  nside: 512
+  mask: 'so'
+  nsims: 100
+  lmin: 30
+  lmax: 300
+  dell: 10
+#  isDell: False
+
+paths:
+  base: '/global/cfs/cdirs/act/data/iabril/DustFilaments/'
+  sim:  'sims_230220/'
+  output: 'analysis/'
+  base_name: 'DustFilaments_TQU_180p5M_400pc_LR71_GNILC-unires_ell-limit50_nside512_reso12-25_seed'
+  mid_name: '_AllScale_f'
+  end_name: 'p0.fits'
+
+norm:
+  alphad: -0.54
+  ampd  : 28
