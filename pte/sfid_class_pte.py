@@ -7,8 +7,8 @@ import numpy as np
 from astropy.io import fits
 import sacc
 from scipy import stats
-from utils.params import NAME_CELLS, PATH_DICT, NAME_RUN, NAME_COUPLINGM, NAME_COMP
-from utils.params import NSIDE, POLARIZATION_cov, NPARAMS
+from utils.params import PATH_DICT, NAME_RUN, NAME_COMP
+from utils.params import NSIDE, POLARIZATION_cov
 from utils.binning import rebin, cut_array
 from utils.sed import get_band_names
 
@@ -51,8 +51,7 @@ class SfClass():
         # populate with gaussian and NG covariance
         cov_ng_full = fits.open(PATH_DICT['output_path'] + NAME_RUN +'_nobin_fullCov.fits')[0].data
         cov_g_full  = fits.open(PATH_DICT['output_path'] + \
-                            '_'.join([NAME_CELLS, NAME_COUPLINGM, NAME_COMP, 'Cov']) +\
-                            '_nobin_w.fits')[0].data
+                            '_'.join([NAME_RUN, NAME_COMP, 'Cov']) + '_nobin_w.fits')[0].data
 
         # select polarization and ell range
         for obj in [self.s_f, self.s_fg, self.s_fng]:
@@ -270,7 +269,7 @@ def ptechi2_gvsng(nsims, sfclassobj):
 
     # obtain cell array and covariances
     cell_array, _, bbcovar_ng, invcov_g, invcov_ng = sfclassobj.get_cellandcov()
-    dof_chi2 = sfclassobj.dof - NPARAMS
+    dof_chi2 = sfclassobj.dof
 
     # iniciate arrays
     chi_ng_array = np.zeros(nsims) + np.nan

@@ -245,7 +245,7 @@ class CosmoConfig:
         self.dust = param['dust']
         self.sync = param['sync']
         self.model = param['model']
-        self.nparams = param['nparams']
+        # self.nparams = param['nparams']
 
 class BandConfig:
 
@@ -341,7 +341,7 @@ dust_params = cosmo_params.dust
 sync_params = cosmo_params.sync
 model_params = cosmo_params.model
 
-NPARAMS = cosmo_params.nparams
+# NPARAMS = cosmo_params.nparams
 A_dust_BB = dust_params['A_dust_BB']
 EB_dust = dust_params['EB_dust']
 alpha_dust_EE = dust_params['alpha_dust_EE']
