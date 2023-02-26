@@ -9,7 +9,7 @@ from copy import deepcopy
 import numpy as np
 import sacc
 from astropy.io import fits
-from utils.params import NAME_CELLS, PATH_DICT, NAME_RUN, NAME_COUPLINGM, NAME_COMP
+from utils.params import PATH_DICT, NAME_RUN, NAME_COMP
 from utils.params import EXPERIMENT, NSIDE, LMIN, DELL, NBANDS, POLARIZATION_cov
 import utils.noise_calc as nc
 from utils.binning import rebin, cut_array
@@ -357,23 +357,34 @@ def compute_cl(ctype, type_cov):
     #         covar = (bpw_freq_tot[i1, j1, :]*bpw_freq_tot[i2, j2, :]+
     #                 bpw_freq_tot[i1, j2, :]*bpw_freq_tot[i2, j1, :]) * factor_modecount
     #         cov_bpw[ii, :, jj, :] = np.diag(covar)
+    if type_cov == 'df':
+        # read in cov
+        from utils_dustfil.params import DF_OUTPUT_PATH, DF_NAME_RUN
+        cov_bpw = fits.open(DF_OUTPUT_PATH + DF_NAME_RUN + '_bin_fullCov.fits')[0].data
 
-    if type_cov == 'w':
-        cov_bpw_full = fits.open(PATH_DICT['output_path'] + \
-                            '_'.join([NAME_RUN, NAME_COMP, 'Cov']) + \
-                            '_nobin_w.fits')[0].data
+    else:
 
-    if type_cov == 'wt':
-        cov_bpw_full =  fits.open(PATH_DICT['output_path'] +\
-                            NAME_RUN +'_nobin_fullCov.fits')[0].data
+        if type_cov == 'w':
+            cov_bpw_full = fits.open(PATH_DICT['output_path'] + \
+                                '_'.join([NAME_RUN, NAME_COMP, 'Cov']) + \
+                                '_nobin_w.fits')[0].data
 
-    # cut and bin COV MW matrix:
-    for i_tr in range(ncombs):
-        for j_tr in range(ncombs):
-            cov_bpw[i_tr,:, j_tr,:] = rebin(cut_array(cov_bpw_full[i_tr,:, j_tr,:], \
-                                            np.arange(3 * NSIDE), LMIN, LMAX), [NBANDS, NBANDS])
+        if type_cov == 'wt':
+            cov_bpw_full =  fits.open(PATH_DICT['output_path'] +\
+                                NAME_RUN +'_nobin_fullCov.fits')[0].data
+
+        # cut and bin COV MW matrix:
+        for i_tr in range(ncombs):
+            for j_tr in range(ncombs):
+                cov_bpw[i_tr,:, j_tr,:] = rebin(cut_array(cov_bpw_full[i_tr,:, j_tr,:], \
+                                                np.arange(3 * NSIDE), LMIN, LMAX), [NBANDS, NBANDS])
+
+    #  # save to fits file
+    # hducov = fits.PrimaryHDU(cov_bpw)
+    # hducov.writeto(PATH_DICT['output_path'] + NAME_RUN + '_'+ type_cov  +'_bin_fullCov.fits', overwrite = True)
 
     cov_bpw = cov_bpw.reshape([ncombs * NBANDS, ncombs * NBANDS ])
+
     s_d.add_covariance(cov_bpw)
 
     # save files
