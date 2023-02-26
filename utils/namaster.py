@@ -55,6 +55,43 @@ def get_bandpowers(nside, width_ell):
     return bin_bpw, ell_eff
 
 
+def binning_bbpower(lmin, lmax, dell, nside):
+
+    '''
+    specifies binning scheme for namaster and also returns effective ells
+    
+    *Parameters*
+    
+    lmin: int
+        minimum ell
+    lmax: int
+        ell max
+    dell: int
+        width of ell bins
+    nside: int
+        resolution of map
+    is_Dell: bool
+        weight by ell * (ell + 1) / 2pi ?
+    
+    * Returns * 
+    b: nmt bin
+    ell_eff: np.array 
+    '''
+
+    ells = np.arange(lmin, lmax, dtype = 'int32')
+    weights = 1/dell * np.ones_like(ells)
+    bpws = -1 + np.zeros_like(ells)
+
+    i = 0
+    while dell * (i + 1) < lmax:
+        bpws[dell * i : dell * (i + 1)] = i
+        i += 1
+
+    b_df = nmt.NmtBin(nside = nside, bpws = bpws, ells = ells, weights = weights)
+    ell_eff_df = b_df.get_effective_ells()
+
+    return b_df, ell_eff_df
+
 def get_couplingmatrix(f_a, f_b, bin_bpw):
 
     '''
@@ -151,11 +188,11 @@ def get_mask(nside, mtype, **kwargs):
         # RA/DEC to Galactic
         mask_so_gal = hp_rotate(w_so, coord = ['E','G'])
 
-        w_so_hi = hp.ud_grade(mask_so_gal, NSIDE)
-        # smooth the mask
-        w_so_apo = nmt.mask_apodization(w_so_hi, kwargs['apo_deg'], apotype="C1")
+        w_so_hi = hp.ud_grade(mask_so_gal, nside)
+        # smooth the mask. it says apodized already
+        # w_so_apo = nmt.mask_apodization(w_so_hi, kwargs['apo_deg'], apotype="C1")
 
-        return w_so_apo
+        return w_so_hi
 
     return None
 
