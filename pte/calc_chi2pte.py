@@ -11,7 +11,7 @@ from utils_bbpw.params import get_dictwnamecompsep
 
 band_names = get_band_names()
 
-def get_chi2andpte(dict_compsep, nsims= int(1e4)):
+def get_chi2andpte(type_cov, dict_compsep, nsims= int(1e4)):
 
     '''
     Writes chi2 and PTEs calculated with G and NG covariances for NAME_RUN fiducial Cell model
@@ -27,7 +27,7 @@ def get_chi2andpte(dict_compsep, nsims= int(1e4)):
     dict_bbcomp = deepcopy(dict(get_dictwnamecompsep(dict_compsep)))
 
     # Sfclass object with all bands
-    s_fid_all = SfClass(bands = 'all', \
+    s_fid_all = SfClass(type_cov = type_cov, bands = 'all', \
                         lmin_bbp =  dict_bbcomp['lmin'], lmax_bbp = dict_bbcomp['lmax'])
 
     if dict_bbcomp['bands'] != 'all':
@@ -37,7 +37,7 @@ def get_chi2andpte(dict_compsep, nsims= int(1e4)):
         band_dict = s_fid_all.name_band2trac()
         bands_sf = [band_dict.get(key) for key in dict_bbcomp['bands']]
         # Sfclass object with user-specified bands (if != all)
-        s_fid = SfClass(bands = bands_sf , \
+        s_fid = SfClass(type_cov = type_cov, bands = bands_sf , \
                     lmin_bbp = dict_bbcomp['lmin'], lmax_bbp = dict_bbcomp['lmax'])
 
     else:
@@ -48,7 +48,7 @@ def get_chi2andpte(dict_compsep, nsims= int(1e4)):
 
     # name of run
     name_chi2pte = PATH_DICT['output_path'] + 'results_pte/' + \
-                    NAME_RUN + '_' + dict_bbcomp['name_config']
+                    NAME_RUN + '_' + dict_bbcomp['name_config'] + '_' + type_cov
 
     # save to file
     np.savetxt(name_chi2pte + '_chi2_g.txt',  chi_g_array)

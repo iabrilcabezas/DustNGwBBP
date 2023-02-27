@@ -39,7 +39,7 @@ class SfClass():
         and also returns the inverse of the last two
     '''
 
-    def __init__(self, bands,lmin_bbp, lmax_bbp):
+    def __init__(self, type_cov, bands,lmin_bbp, lmax_bbp):
 
         # load fiducial power spectrum for NAME_RUN parameters
         name_sf = PATH_DICT['output_path'] + '_'.join([NAME_RUN, WEIGHT, 'wt']) + '_fid.fits'
@@ -49,7 +49,13 @@ class SfClass():
         self.s_fng = sacc.Sacc.load_fits(name_sf)
 
         # populate with gaussian and NG covariance
-        cov_ng_full = fits.open(PATH_DICT['output_path'] + NAME_RUN +'_nobin_fullCov.fits')[0].data
+        if type_cov == 'wt':
+            cov_ng_full = fits.open(PATH_DICT['output_path'] + NAME_RUN +'_nobin_fullCov.fits')[0].data
+        elif type_cov == 'df':
+            from utils_dustfil.params import DF_OUTPUT_PATH, DF_NAME_RUN
+            cov_ng = fits.open(DF_OUTPUT_PATH + DF_NAME_RUN + '_bin_fullCov.fits')[0].data
+
+
         cov_g_full  = fits.open(PATH_DICT['output_path'] + \
                             '_'.join([NAME_RUN, NAME_COMP, 'Cov']) + '_nobin_w.fits')[0].data
 
@@ -88,7 +94,9 @@ class SfClass():
         # bin full covariance matrix in terms of ell range [user] defined
         # cross is still full (all bands)
         cov_g = np.zeros([ncross, self.n_bpws, ncross, self.n_bpws])
-        cov_ng =  np.zeros([ncross, self.n_bpws, ncross, self.n_bpws])
+
+        if type_cov == 'wt':
+            cov_ng =  np.zeros([ncross, self.n_bpws, ncross, self.n_bpws])
 
         # cut and bin COV MW matrix:
         for i_tr in range(ncross):
@@ -97,7 +105,8 @@ class SfClass():
                 cov_g[i_tr,:, j_tr,:] = rebin(cut_array(cov_g_full[i_tr,:, j_tr,:], \
                                                     np.arange(3 * NSIDE), lmin_bbp, lmax_bbp), \
                                                     [self.n_bpws, self.n_bpws])
-                cov_ng[i_tr,:, j_tr,:] = rebin(cut_array(cov_ng_full[i_tr,:, j_tr,:], \
+                if type_cov == 'wt':
+                    cov_ng[i_tr,:, j_tr,:] = rebin(cut_array(cov_ng_full[i_tr,:, j_tr,:], \
                                                     np.arange(3 * NSIDE), lmin_bbp, lmax_bbp), \
                                                     [self.n_bpws,self.n_bpws])
 
