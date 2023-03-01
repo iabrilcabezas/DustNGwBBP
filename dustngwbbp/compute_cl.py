@@ -166,7 +166,7 @@ def add_powerspectra(s_d, bpw_freq_sig, leff, do_bin, weight = 'Cl'):
             s_d.add_ell_cl(cl_type, band12[0], band12[1], LEFF, bpw_freq_sig[i_tr1, i_tr2, :],
                          window = s_wins)
         else:
-            s_d.add_ell_cl(cl_type, band12[0], band12[1], leff, bpw_freq_sig[i_tr1, i_tr2, :])
+            s_d.add_ell_cl(cl_type, band12[0], band12[1], leff, bpw_freq_sig[i_tr1, i_tr2, :]) # note differences in leff
 
 
     return s_d
@@ -357,10 +357,10 @@ def compute_cl(ctype, type_cov):
     #         covar = (bpw_freq_tot[i1, j1, :]*bpw_freq_tot[i2, j2, :]+
     #                 bpw_freq_tot[i1, j2, :]*bpw_freq_tot[i2, j1, :]) * factor_modecount
     #         cov_bpw[ii, :, jj, :] = np.diag(covar)
-    if type_cov == 'df':
+    if type_cov == 'dfwt' or type_cov == 'df00':
         # read in cov
         from utils_dustfil.params import DF_OUTPUT_PATH, DF_NAME_RUN
-        cov_bpw = fits.open(DF_OUTPUT_PATH + DF_NAME_RUN + '_bin_fullCov.fits')[0].data
+        cov_bpw = fits.open(DF_OUTPUT_PATH + DF_NAME_RUN + '_bin_' + type_cov + 'Cov.fits')[0].data
 
     else:
 
