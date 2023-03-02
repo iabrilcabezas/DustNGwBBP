@@ -5,17 +5,18 @@ external:
 global:
     experiment: 'so'
     nside: 256
-    cov_correction: 'w2' # w2 factor, fsky, none (null)
+    cov_correction: 'w2' # 'w2' # w2 factor, fsky, none (null)
+    template: 'd10' # 'p353'
 
 bandpowers:
     lmin: 30
-    dell: 10
-    nbands: 27
+    dell: 30
+    nbands: 9
     
 mask:
     mask_type: 'so'
     apo_deg: 5.0
-    smooth_deg: 20.
+    smooth_deg: .NAN #1.
     dell_nmt: 10
 
 polarization:
@@ -26,13 +27,14 @@ components:
     sync: True
 
 paths:
-    output_path: '/global/cfs/cdirs/act/data/iabril/BBPower/230226_LikeDustFilwBin/'
+    output_path: '/global/cfs/cdirs/act/data/iabril/BBPower/230227_d10/'
     bicep_BK15: '/global/cfs/cdirs/act/data/iabril/BICEP/'
     bbpipe_path: '/global/cfs/cdirs/act/software/iabril/condaenvs/github_reps/BBPower/'
     planck_path_cori: '/global/cscratch1/sd/iabril/PlanckData/'
     planck_path_perl: '/pscratch/sd/i/iabril/data/PlanckData/'
     camb_cmb_lens_nobb: '/global/cfs/cdirs/act/software/iabril/condaenvs/github_reps/BBPower/examples/data/camb_lens_nobb.dat'
     so_path: '/global/cfs/cdirs/act/data/iabril/SO/'
+    template_path: '/global/cfs/cdirs/act/data/iabril/DustFilaments/'
 
 cosmology:
 
