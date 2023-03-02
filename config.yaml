@@ -16,7 +16,7 @@ bandpowers:
 mask:
     mask_type: 'so'
     apo_deg: 5.0
-    smooth_deg: .NAN #1.
+    smooth_deg: 20. #.NAN #1.
     dell_nmt: 10
 
 polarization:

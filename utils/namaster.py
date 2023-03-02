@@ -242,7 +242,8 @@ def get_template_wmask(nside, ttype, mtype, **kwargs):
     w_mask = get_mask(nside, mtype, **kwargs)
     w2_omega_mask = np.mean(w_mask**2)
 
-    template = template_0 * np.sqrt( w2_omega_mask / np.mean(w_mask**2 * template_0**2)) # here we see map units do not matter
+    # normalize template, here we see map units do not matter
+    template = template_0 * np.sqrt( w2_omega_mask / np.mean(w_mask**2 * template_0**2))
 
     # check
     wtilde_mask = w_mask * template

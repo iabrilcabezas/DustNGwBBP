@@ -5,7 +5,7 @@ global:
   nsims: 200
   lmin: 30
   lmax: 300
-  dell: 10
+  dell: 30
   type_cov: 'df00'
 #  isDell: False
 
