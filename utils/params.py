@@ -20,7 +20,7 @@ def get_namerun(kwargs_dict):
 
     return '_'.join(map(str, kwargs_dict.values()))
 
-def get_namecouplingm(nside, mtype, **kwargs_mask):
+def get_namecouplingm(nside, ttype, mtype, **kwargs_mask):
 
     '''
     Returns string to name results of compute_couplingmatrix()
@@ -32,6 +32,8 @@ def get_namecouplingm(nside, mtype, **kwargs_mask):
         width of ell bins in namaster bandpower bins
     mtype: str
         type of mask
+    ttype: str
+        type of template
     apo_deg: float or NaN
         apodization scale of mask
 
@@ -39,7 +41,7 @@ def get_namecouplingm(nside, mtype, **kwargs_mask):
     str
     '''
 
-    values = [nside, kwargs_mask['dell_nmt'], mtype, \
+    values = [nside, kwargs_mask['dell_nmt'], ttype, mtype, \
               kwargs_mask['apo_deg'], kwargs_mask['smooth_deg']]
 
 
@@ -108,6 +110,7 @@ def pathnames():
     output_path = config.path_param.output
     camb_cmb_lens_nobb_path = config.path_param.camb_cmb_lens_nobb
     so_path = config.path_param.so
+    template_path = config.path_param.template
 
     if MACHINE == 'cori':
 
@@ -122,6 +125,7 @@ def pathnames():
     dict_path['output_path'] = output_path
     dict_path['camb_cmb_lens_nobb'] = camb_cmb_lens_nobb_path
     dict_path['so_path'] = so_path
+    dict_path['template_path'] = template_path
 
     return dict_path
 
@@ -144,6 +148,7 @@ class GlobalConfig:
         self.experiment = param['experiment']
         self.nside      = param['nside']
         self.cov_corr   = param['cov_correction']
+        self.template   = param['template']
 
 class BpwConfig:
 
@@ -207,6 +212,7 @@ class PathConfig:
         self.planck_path_perl = param['planck_path_perl']
         self.camb_cmb_lens_nobb = param['camb_cmb_lens_nobb']
         self.so = param['so_path']
+        self.template = param['template_path']
 
 class MaskConfig:
 
@@ -322,24 +328,25 @@ with open('config.yaml', 'r', encoding = 'utf-8') as config_file:
     config = Config(yaml.load(config_file, yaml.FullLoader))
 
 
-MACHINE = config.external.machine
-NSIDE   = config.global_param.nside
-EXPERIMENT = config.global_param.experiment
-COV_CORR = config.global_param.cov_corr
-MTYPE   = config.mask_param.mask_type
-DELL_NMT = config.mask_param.dell_nmt
-LMIN = config.bpw_param.lmin
-DELL = config.bpw_param.dell
-NBANDS = config.bpw_param.nbands
+MACHINE          = config.external.machine
+NSIDE            = config.global_param.nside
+EXPERIMENT       = config.global_param.experiment
+COV_CORR         = config.global_param.cov_corr
+TTYPE            = config.global_param.template
+MTYPE            = config.mask_param.mask_type
+DELL_NMT         = config.mask_param.dell_nmt
+LMIN             = config.bpw_param.lmin
+DELL             = config.bpw_param.dell
+NBANDS           = config.bpw_param.nbands
 POLARIZATION_cov = config.pol_param.pol_cov
 
 band_names_config = config.band_names
 
-cosmo_params = config.cosmo_param
-cmb_params = cosmo_params.CMB
-dust_params = cosmo_params.dust
-sync_params = cosmo_params.sync
-model_params = cosmo_params.model
+cosmo_params    = config.cosmo_param
+cmb_params      = cosmo_params.CMB
+dust_params     = cosmo_params.dust
+sync_params     = cosmo_params.sync
+model_params    = cosmo_params.model
 
 # NPARAMS = cosmo_params.nparams
 A_dust_BB = dust_params['A_dust_BB']
@@ -364,13 +371,13 @@ PATH_DICT = dict(pathnames())
 namerun_dict = {**config.global_param.__dict__, **config.bpw_param.__dict__, \
                 **config.mask_param.__dict__, **config.pol_param.__dict__}
 
-NAME_COUPLINGM = get_namecouplingm(NSIDE, MTYPE, **config.mask_param.__dict__)
+NAME_COUPLINGM = get_namecouplingm(NSIDE, TTYPE, MTYPE, **config.mask_param.__dict__)
 NAME_COMP = get_namecomp(config.components.__dict__)
 NAME_CELLS = get_namecells(EXPERIMENT, NSIDE, POLARIZATION_cov, NAME_COMP)
 NAME_RUN  = get_namerun(namerun_dict) + '_' + NAME_COMP
 
-name_couplingmatrix_w = PATH_DICT['output_path'] + NAME_COUPLINGM + '_couplingM_w.txt'
-name_couplingmatrix_wt = PATH_DICT['output_path'] + NAME_COUPLINGM + '_couplingM_wt.txt'
+name_couplingmatrix_w = PATH_DICT['output_path'] + NAME_COUPLINGM + '_couplingM_w' # .txt'
+name_couplingmatrix_wt = PATH_DICT['output_path'] + NAME_COUPLINGM + '_couplingM_wt' #.txt'
 
 print(NAME_RUN)
 # print(PATH_DICT)

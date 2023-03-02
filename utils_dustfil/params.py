@@ -52,6 +52,7 @@ class GlobalConfig:
         self.lmin  = param['lmin']
         self.lmax  = param['lmax']
         self.dell  = param['dell']
+        self.tcov  = param['type_cov']
 
 class NormConfig:
 
@@ -95,6 +96,7 @@ DF_NSIDE = config_dfil.glob.nside
 DF_LMIN = config_dfil.glob.lmin
 DF_LMAX = config_dfil.glob.lmax
 DF_DELL = config_dfil.glob.dell
+TYPE_DCOV = config_dfil.glob.tcov
 
 # construct full path
 DF_BASE_PATH = config_dfil.paths.base + config_dfil.paths.sim + config_dfil.paths.base_name
@@ -104,5 +106,5 @@ DF_OUTPUT_PATH = config_dfil.paths.base + config_dfil.paths.sim + config_dfil.pa
 DF_ALPHA = config_dfil.norm.alphad
 DF_AMP   = config_dfil.norm.ampdd
 
-DF_NAME_RUN = f'{DF_FREQ}_{DF_MASK}_{DF_NSIDE}_{abs(DF_ALPHA)}_{DF_AMP}_{DF_LMIN}_{DF_LMAX}_{DF_DELL}'
+DF_NAME_RUN = f'{DF_FREQ}_{DF_MASK}_{DF_NSIDE}_{abs(DF_ALPHA)}_{DF_AMP}_{DF_LMIN}_{DF_LMAX}_{DF_DELL}_{TYPE_DCOV}'
 print(DF_NAME_RUN)

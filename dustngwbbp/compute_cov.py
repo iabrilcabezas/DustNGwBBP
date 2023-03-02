@@ -43,8 +43,8 @@ def compute_cov(ctype, w2_factor):
     # read in cells
     s_d = sacc.Sacc.load_fits(PATH_DICT['output_path'] + '_'.join([NAME_RUN, ctype]) + '_clnobin.fits')
     # read-in coupling matrices
-    mw2_matrix = np.loadtxt(name_couplingmatrix_w)
-    mwt2_matrix = np.loadtxt(name_couplingmatrix_wt)
+    mw2_matrix = np.loadtxt(name_couplingmatrix_w + '.txt')
+    mwt2_matrix = np.loadtxt(name_couplingmatrix_wt + '.txt')
 
     tr_names = sorted(list(s_d.tracers.keys()))
 

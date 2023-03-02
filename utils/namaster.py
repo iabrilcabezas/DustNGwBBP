@@ -8,7 +8,7 @@ import healpy as hp
 import pymaster as nmt
 from astropy import units as u
 from astropy.coordinates import SkyCoord
-from utils.params import PATH_DICT, NSIDE
+from utils.params import PATH_DICT
 
 
 def hp_rotate(map_hp, coord):
@@ -186,10 +186,10 @@ def get_mask(nside, mtype, **kwargs):
         w_so = hp.read_map(PATH_DICT['so_path'] + 'mask_apodized_david_nside512.fits')
 
         # RA/DEC to Galactic
-        mask_so_gal = hp_rotate(w_so, coord = ['E','G'])
+        mask_so_gal = hp_rotate(w_so, coord = ['C','G'])
 
         w_so_hi = hp.ud_grade(mask_so_gal, nside)
-        # smooth the mask. it says apodized already
+        # not smooth the mask. it says apodized already
         # w_so_apo = nmt.mask_apodization(w_so_hi, kwargs['apo_deg'], apotype="C1")
 
         return w_so_hi
@@ -197,7 +197,7 @@ def get_mask(nside, mtype, **kwargs):
     return None
 
 
-def get_template_wmask(nside, mtype, **kwargs):
+def get_template_wmask(nside, ttype, mtype, **kwargs):
 
     '''
     Obtains modulating template. Constructed from Appendix A instructions
@@ -209,6 +209,8 @@ def get_template_wmask(nside, mtype, **kwargs):
             resolution of maps
     mtype: str
             type of mask
+    ttype: str
+            template to use
     kwargs: dict
             'apo_deg':      float. Apodization scale of mask in degrees
             'smooth_deg':   float. Smoothing scale of template in degrees
@@ -220,17 +222,27 @@ def get_template_wmask(nside, mtype, **kwargs):
             mask
     '''
 
-    # map from which to create anisotropic correlated template
-    p353 = hp.read_map(PATH_DICT['planck_data']+"HFI_SkyMap_353-psb-field-IQU_2048_R3.00_full.fits")
-    p353_hi = hp.ud_grade(p353, nside)
+    if ttype == 'p353':
+        # map from which to create anisotropic correlated template
+        templ = hp.read_map(PATH_DICT['planck_data']+"HFI_SkyMap_353-psb-field-IQU_2048_R3.00_full.fits")
+    if ttype == 'd10':
+        templ = hp.read_map(PATH_DICT['template_path'] + 'dust_d10_353_in_uK_CMB.fits')
+    else:
+        return None
+
+    templ_hi = hp.ud_grade(templ, nside)
     # create large-scale modulating template by smoothing 353 map
-    template_0 = hp.smoothing(p353_hi, fwhm=np.deg2rad(kwargs['smooth_deg']))
+    if np.isnan(kwargs['smooth_deg']):
+        template_0 = templ_hi
+        print('not smoothed')
+    else:
+        template_0 = hp.smoothing(templ_hi, fwhm=np.deg2rad(kwargs['smooth_deg']))
 
     # obtain mask
     w_mask = get_mask(nside, mtype, **kwargs)
     w2_omega_mask = np.mean(w_mask**2)
 
-    template = template_0 * np.sqrt( w2_omega_mask / np.mean(w_mask**2 * template_0**2))
+    template = template_0 * np.sqrt( w2_omega_mask / np.mean(w_mask**2 * template_0**2)) # here we see map units do not matter
 
     # check
     wtilde_mask = w_mask * template

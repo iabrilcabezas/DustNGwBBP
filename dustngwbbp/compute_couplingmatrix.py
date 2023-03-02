@@ -6,7 +6,7 @@ compute_couplingmatrix
 import pymaster as nmt
 import numpy as np
 from utils.namaster import get_bandpowers, get_template_wmask, get_couplingmatrix
-from utils.params import NSIDE, MTYPE
+from utils.params import NSIDE, MTYPE, TTYPE
 from utils.params import name_couplingmatrix_w, name_couplingmatrix_wt
 
 def compute_couplingmatrix(**kwargs_dict):
@@ -32,7 +32,7 @@ def compute_couplingmatrix(**kwargs_dict):
     # get bandpowers
     bin_bpw, _ = get_bandpowers(NSIDE, kwargs_dict['dell_nmt'])
     # get template and mask:
-    template, w_mask, w2omega = get_template_wmask(NSIDE, MTYPE, **kwargs_dict)
+    template, w_mask, w2omega = get_template_wmask(NSIDE, TTYPE, MTYPE, **kwargs_dict)
 
     f_d2 = nmt.NmtField(w_mask * w_mask, None, spin = 0)
     f_dtilde2 = nmt.NmtField((w_mask * template)**2, None, spin = 0)
@@ -40,7 +40,7 @@ def compute_couplingmatrix(**kwargs_dict):
     mw2_matrix =  get_couplingmatrix(f_d2, f_d2, bin_bpw)
     mwt2_matrix = get_couplingmatrix(f_dtilde2, f_dtilde2, bin_bpw)
 
-    np.savetxt(name_couplingmatrix_w , mw2_matrix)
-    np.savetxt(name_couplingmatrix_wt, mwt2_matrix)
+    np.savetxt(name_couplingmatrix_w + '.txt' , mw2_matrix)
+    np.savetxt(name_couplingmatrix_wt + '.txt', mwt2_matrix)
 
     return w2omega
