@@ -27,6 +27,7 @@ mask_so_gal = get_mask(DF_NSIDE, DF_MASK)
 fsky = get_fsky()
 
 band_names = get_band_names()
+
 bpss       = import_bandpasses()
 
 nfreqs = len(band_names)
@@ -38,10 +39,12 @@ ncombs = len(indices_tr[0])
 def model_dustfil_dust(x, Ad):
 
     '''
-    PL spectra for dust at fixed alpha
+    PL spectra for dust at fixed alpha. 
+    Note that we work with C_ell instead of D_ell
     '''
-
-    return dl_plaw(A=Ad, alpha=DF_ALPHA, ls = x)
+    dell_dust = dl_plaw(A=Ad, alpha=DF_ALPHA, ls = x)
+    cell_dust = dell_dust / ( (x * (x + 1)) / (2 * np.pi) )
+    return cell_dust
 
 
 
@@ -105,7 +108,7 @@ def calibrate_cells():
 
     # save to fits file
     hdu_cov = fits.PrimaryHDU(cov_dustfil_scale_full)
-    hdu_cov.writeto(DF_OUTPUT_PATH + DF_NAME_RUN + '_fullCov.fits', overwrite = True)
+    hdu_cov.writeto(DF_OUTPUT_PATH + DF_NAME_RUN + '_dustDFCov.fits', overwrite = True)
 
 def merge_cov():
 
@@ -125,19 +128,24 @@ def merge_cov():
             dustwt_bin[i_tr,:, j_tr,:] = rebin(cut_array(dustwt_nobin[i_tr,:, j_tr,:], \
                                             np.arange(3 * NSIDE), DF_LMIN, DF_LMAX), [nell_df, nell_df])
 
-    dust_dustfil = fits.open(DF_OUTPUT_PATH + DF_NAME_RUN + '_fullCov.fits')[0].data
+    dust_dustfil = fits.open(DF_OUTPUT_PATH + DF_NAME_RUN + '_dustDFCov.fits')[0].data
 
     merged_cov = np.where(np.abs(dust_dustfil) >= dustwt_bin, dust_dustfil, dustwt_bin)
 
     # save to fits file
     hducov = fits.PrimaryHDU(merged_cov)
-    hducov.writeto(DF_OUTPUT_PATH + DF_NAME_RUN + '_bin_dust_mergedCov.fits', overwrite = True)
+    hducov.writeto(DF_OUTPUT_PATH + DF_NAME_RUN + '_bin_dust_dfwtCov.fits', overwrite = True)
 
-def compute_full_cov():
+def compute_full_cov(type_dustcov):
 
     '''
     Merges dust covariance with covariance from other components
     '''
+
+    if type_dustcov == 'df00':
+        cov_dustall = fits.open(DF_OUTPUT_PATH + DF_NAME_RUN + '_dustDFCov.fits')[0].data
+    if type_dustcov == 'dfwt':
+        cov_dustall = fits.open(DF_OUTPUT_PATH + DF_NAME_RUN + '_bin_dust_dfwtCov.fits')[0].data
 
     cov_all = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_RUN, 'dcs', 'Cov']) + \
                             '_nobin_w.fits')[0].data
@@ -145,8 +153,6 @@ def compute_full_cov():
     cov_dustw = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_RUN, 'd00', 'Cov']) +\
                             '_nobin_w.fits')[0].data
 
-    cov_dustall = fits.open(DF_OUTPUT_PATH + DF_NAME_RUN + '_bin_dust_mergedCov.fits')[0].data
-    
     cov_all_bin = np.zeros([ncombs, nell_df, ncombs, nell_df])
     cov_dustw_bin =  np.zeros([ncombs, nell_df, ncombs, nell_df])
     for i_tr in range(ncombs):
@@ -161,4 +167,4 @@ def compute_full_cov():
     total_cov= np.add(cov_all_bin, np.subtract(cov_dustall, cov_dustw_bin))
     # save to fits file
     hdu_cov = fits.PrimaryHDU(total_cov)
-    hdu_cov.writeto(DF_OUTPUT_PATH + DF_NAME_RUN + '_bin_fullCov.fits', overwrite = True)
+    hdu_cov.writeto(DF_OUTPUT_PATH + DF_NAME_RUN + '_bin_' + type_dustcov + 'Cov.fits', overwrite = True)
