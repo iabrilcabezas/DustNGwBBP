@@ -16,6 +16,8 @@ from utils.binning import rebin, cut_array
 from utils.sed import get_band_names, Bpass, get_component_spectra, get_convolved_seds
 from utils.bandpowers import get_ell_arrays, dell2cell_lmax
 
+from utils_dustfil.params import DF_OUTPUT_PATH, DF_NAME_RUN
+
 band_names = get_band_names()
 LMAX, LARR_ALL, LBANDS, LEFF = get_ell_arrays(LMIN, DELL, NBANDS)
 
@@ -351,37 +353,27 @@ def compute_cl(ctype, type_cov):
 
     cov_bpw = np.zeros([ncombs, NBANDS, ncombs, NBANDS])
 
-    # factor_modecount = 1./((2*leff+1)*DELL*fsky)
-    # for ii, (i1, i2) in enumerate(zip(indices_tr[0], indices_tr[1])):
-    #     for jj, (j1, j2) in enumerate(zip(indices_tr[0], indices_tr[1])):
-    #         covar = (bpw_freq_tot[i1, j1, :]*bpw_freq_tot[i2, j2, :]+
-    #                 bpw_freq_tot[i1, j2, :]*bpw_freq_tot[i2, j1, :]) * factor_modecount
-    #         cov_bpw[ii, :, jj, :] = np.diag(covar)
     if type_cov == 'dfwt' or type_cov == 'df00':
         # read in cov
-        from utils_dustfil.params import DF_OUTPUT_PATH, DF_NAME_RUN
-        cov_bpw = fits.open(DF_OUTPUT_PATH + DF_NAME_RUN + '_bin_' + type_cov + 'Cov.fits')[0].data
-
-    else:
-
-        if type_cov == 'w':
-            cov_bpw_full = fits.open(PATH_DICT['output_path'] + \
-                                '_'.join([NAME_RUN, NAME_COMP, 'Cov']) + \
-                                '_nobin_w.fits')[0].data
-
-        if type_cov == 'wt':
-            cov_bpw_full =  fits.open(PATH_DICT['output_path'] +\
-                                NAME_RUN +'_nobin_fullCov.fits')[0].data
+        cov_bpw = fits.open(DF_OUTPUT_PATH + DF_NAME_RUN + '_dcs_Cov_bin_'+ \
+                            type_cov + '.fits')[0].data
+        
+    elif type_cov == 'w' or type_cov == 'wt':
+        cov_bpw_nobin = fits.open(PATH_DICT['output_path'] + \
+                                '_'.join([NAME_RUN, NAME_COMP, 'Cov', 'nobin']) + \
+                                f'_{type_cov}.fits')[0].data
 
         # cut and bin COV MW matrix:
         for i_tr in range(ncombs):
             for j_tr in range(ncombs):
-                cov_bpw[i_tr,:, j_tr,:] = rebin(cut_array(cov_bpw_full[i_tr,:, j_tr,:], \
+                cov_bpw[i_tr,:, j_tr,:] = rebin(cut_array(cov_bpw_nobin[i_tr,:, j_tr,:], \
                                                 np.arange(3 * NSIDE), LMIN, LMAX), [NBANDS, NBANDS])
 
-    #  # save to fits file
-    # hducov = fits.PrimaryHDU(cov_bpw)
-    # hducov.writeto(PATH_DICT['output_path'] + NAME_RUN + '_'+ type_cov  +'_bin_fullCov.fits', overwrite = True)
+        # save to fits file
+        hducov = fits.PrimaryHDU(cov_bpw)
+        hducov.writeto(PATH_DICT['output_path'] + \
+                                '_'.join([NAME_RUN, NAME_COMP, 'Cov', 'bin']) + \
+                                f'_{type_cov}.fits', overwrite = True)
 
     cov_bpw = cov_bpw.reshape([ncombs * NBANDS, ncombs * NBANDS ])
 

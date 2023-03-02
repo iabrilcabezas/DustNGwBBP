@@ -12,6 +12,8 @@ from utils.params import NSIDE, POLARIZATION_cov
 from utils.binning import rebin, cut_array
 from utils.sed import get_band_names
 
+from utils_dustfil.params import DF_OUTPUT_PATH, DF_NAME_RUN
+
 WEIGHT = 'Cl'
 band_names = get_band_names()
 
@@ -50,11 +52,13 @@ class SfClass():
 
         # populate with gaussian and NG covariance
         if type_cov == 'wt':
-            cov_ng_full = fits.open(PATH_DICT['output_path'] + NAME_RUN +'_nobin_fullCov.fits')[0].data
-        elif type_cov == 'df':
-            from utils_dustfil.params import DF_OUTPUT_PATH, DF_NAME_RUN
-            cov_ng = fits.open(DF_OUTPUT_PATH + DF_NAME_RUN + '_bin_fullCov.fits')[0].data
+            cov_ng_full = fits.open(PATH_DICT['output_path'] + NAME_RUN + \
+                                    '_nobin_fullCov.fits')[0].data
 
+        elif type_cov == 'dfwt' or type_cov == 'df00':
+            # read-in cov
+            cov_ng = fits.open(DF_OUTPUT_PATH + DF_NAME_RUN + \
+                               '_bin_' + type_cov + '_Cov.fits')[0].data
 
         cov_g_full  = fits.open(PATH_DICT['output_path'] + \
                             '_'.join([NAME_RUN, NAME_COMP, 'Cov']) + '_nobin_w.fits')[0].data

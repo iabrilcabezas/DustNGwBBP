@@ -8,7 +8,7 @@ import numpy as np
 import sacc
 from astropy.io import fits
 from utils.params import NBANDS, NSIDE, LMIN, DELL, POLARIZATION_cov, COV_CORR
-from utils.params import PATH_DICT, NAME_RUN, NAME_CELLS, NAME_COUPLINGM, NAME_COMP
+from utils.params import PATH_DICT, NAME_RUN, NAME_COMP
 from utils.params import name_couplingmatrix_w, name_couplingmatrix_wt
 from utils.sed import get_band_names
 from utils.bandpowers import get_ell_arrays
@@ -121,8 +121,10 @@ def compute_cov(ctype, w2_factor):
 
     hdu_w.writeto(PATH_DICT['output_path'] + '_'.join([NAME_RUN, ctype, 'Cov']) + \
                     '_nobin_w.fits', overwrite = True)
-    hdu_wt.writeto(PATH_DICT['output_path'] + '_'.join([NAME_RUN, ctype, 'Cov']) +\
+    if ctype == 'd00':
+        hdu_wt.writeto(PATH_DICT['output_path'] + '_'.join([NAME_RUN, ctype, 'Cov']) +\
                     '_nobin_wt.fits', overwrite = True)
+    return None
 
 
 def get_effective_cov():
@@ -156,7 +158,7 @@ def get_effective_cov():
 
     # save to fits file
     hdu_cov = fits.PrimaryHDU(total_cov)
-    hdu_cov.writeto(PATH_DICT['output_path'] + NAME_RUN + '_nobin_fullCov.fits', overwrite = True)
+    hdu_cov.writeto(PATH_DICT['output_path'] + '_'.join([NAME_RUN, NAME_COMP, 'Cov']) + '_nobin_wt.fits', overwrite = True)
 
 def get_crazy_cov(covtype):
 
@@ -167,42 +169,44 @@ def get_crazy_cov(covtype):
     ** Parameters **
     covtype: str, 'uniform' or 'offset'
     '''
-    N_offset = 30
-    corr_uniform = 0.1
-    corr_offset = 0.5
-    # read in precomputed gaussian cov
-    hdu_dustw = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_RUN, 'd00', 'Cov']) +\
-                            '_nobin_w.fits')
-    hdu_all = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_RUN, NAME_COMP, 'Cov']) + \
-                            '_nobin_w.fits')
+    # N_offset = 30
+    # corr_uniform = 0.1
+    # corr_offset = 0.5
+    # # read in precomputed gaussian cov
+    # hdu_dustw = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_RUN, 'd00', 'Cov']) +\
+    #                         '_nobin_w.fits')
+    # hdu_all = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_RUN, NAME_COMP, 'Cov']) + \
+    #                         '_nobin_w.fits')
 
-    cov_dustw = hdu_dustw[0].data
-    cov_allw = hdu_all[0].data
+    # cov_dustw = hdu_dustw[0].data
+    # cov_allw = hdu_all[0].data
 
-    cross, Nell = cov_dustw.shape[:2]
+    # cross, Nell = cov_dustw.shape[:2]
 
-    cov_dustNG = np.zeros_like(cov_dustw)
+    # cov_dustNG = np.zeros_like(cov_dustw)
 
-    for x in range(cross):
-        for y in range(cross):
-            np.fill_diagonal(cov_dustNG[x,:,y,:], np.diag(cov_dustw[x,:,y,:]))
+    # for x in range(cross):
+    #     for y in range(cross):
+    #         np.fill_diagonal(cov_dustNG[x,:,y,:], np.diag(cov_dustw[x,:,y,:]))
 
-            if covtype == 'uniform':
+    #         if covtype == 'uniform':
 
-                for i in range(Nell - 1):
-                    for j in range(i+1, Nell):
-                        cov_dustNG[x,i, y,j] = corr_uniform * np.sqrt( cov_dustNG[x,i,y,i] * cov_dustNG[x,j,y,j] )
-                        cov_dustNG[x,j,y,i]  = cov_dustNG[x,i,y,j]
+    #             for i in range(Nell - 1):
+    #                 for j in range(i+1, Nell):
+    #                     cov_dustNG[x,i, y,j] = corr_uniform * np.sqrt( cov_dustNG[x,i,y,i] * cov_dustNG[x,j,y,j] )
+    #                     cov_dustNG[x,j,y,i]  = cov_dustNG[x,i,y,j]
 
-            if covtype == 'offset':
+    #         if covtype == 'offset':
 
-                for n in range(N_offset):
-                    for i,j in zip(range(Nell - 1), range(n+1, Nell)):
-                        cov_dustNG[x,i,y,j] = corr_offset * np.sqrt( cov_dustNG[x,i,y,i] * cov_dustNG[x,j,y,j] )
-                        cov_dustNG[x,j,y,i]  = cov_dustNG[x,i,y,j]
+    #             for n in range(N_offset):
+    #                 for i,j in zip(range(Nell - 1), range(n+1, Nell)):
+    #                     cov_dustNG[x,i,y,j] = corr_offset * np.sqrt( cov_dustNG[x,i,y,i] * cov_dustNG[x,j,y,j] )
+    #                     cov_dustNG[x,j,y,i]  = cov_dustNG[x,i,y,j]
 
-    # Cov = Cov(all, gaussian) + [ Cov(dust, non gaussian) - Cov(dust, gaussian) ]
-    total_cov= np.add(cov_allw, np.subtract(cov_dustNG, cov_dustw))
-    # save to fits file
-    hdu_cov = fits.PrimaryHDU(total_cov)
-    hdu_cov.writeto(PATH_DICT['output_path'] + NAME_RUN + '_nobin_fullCov.fits', overwrite = True)
+    # # Cov = Cov(all, gaussian) + [ Cov(dust, non gaussian) - Cov(dust, gaussian) ]
+    # total_cov= np.add(cov_allw, np.subtract(cov_dustNG, cov_dustw))
+    # # save to fits file
+    # hdu_cov = fits.PrimaryHDU(total_cov)
+    # hdu_cov.writeto(PATH_DICT['output_path'] + NAME_RUN + '_nobin_fullCov.fits', overwrite = True)
+    print('currently invalid function')
+    return None
