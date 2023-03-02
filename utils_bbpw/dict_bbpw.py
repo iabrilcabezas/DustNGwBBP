@@ -61,7 +61,7 @@ def get_dict_fgmodel(name_comp, cro, mom):
 
     if mom:
         dict_fgmodel['use_moments'] = True
-        dict_fgmodel['moments_lmax'] = 300
+        dict_fgmodel['moments_lmax'] = 299 # 300 gives a bug if lmax of data is 300
 
     if name_comp == 'dcs':
         dict_fgmodel['component_2'] = dict_comp2
