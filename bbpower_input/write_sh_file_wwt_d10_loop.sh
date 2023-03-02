@@ -1,26 +1,27 @@
 #!/bin/bash
 
-base_folder=/global/cfs/cdirs/act/data/iabril/BBPower/230226_LikeDustFilwBin
+base_folder=/global/cfs/cdirs/act/data/iabril/BBPower/230227_d10
 #input_folder=/global/common/software/act/iabril/python/DustNGwBBP/bbpower_input
 
 machine=perl
 experiment=so
 nside=256
-cov_corr=w2
+cov_corr=fsky
 lmin=30
-nbands=27
-dell=10
+nbands=9
+dell=30
 dellnmt=10
 pol=B
 weight=Cl
 
-mtype=so
-apodeg=5.0
+mtype=full
+apodeg=nan
 smooth=20.0
-w_type=w #wt
+templ=d10
+# w_type=w #wt
 ctype=dcs
-cross=C
-moments=M
+cross=0
+moments=0
 
 bands=all #MF1_UHF2 #
 lminbb=30
@@ -44,23 +45,23 @@ smoothes=( "10.0" "20.0" "40.0")
 # do
 #for moments in $mmts
 #do
-#for w_type in $wtypes
-#do
+for w_type in $wtypes
+do
 
-    name_run=${experiment}_${nside}_${cov_corr}_${lmin}_${nbands}_${dell}_${mtype}_${apodeg}_${smooth}_${dellnmt}_${pol}_${ctype}_${weight}
+    name_run=${experiment}_${nside}_${cov_corr}_${templ}_${lmin}_${nbands}_${dell}_${mtype}_${apodeg}_${smooth}_${dellnmt}_${pol}_${ctype}_${weight}
     name_c=${name_run}_${cross}_${moments}_${w_type}_${lminbb}_${lmaxbb}_${bands}
     name_cls=${name_run}_${w_type}
     echo ${base_folder}
     echo ${name_c}
 
-    if [ -f ${base_folder}/chains/${name_c}.npz.h5 ]; then
-        rm ${base_folder}/chains/${name_c}.npz*
-    fi
+#    if [ -f ${base_folder}/chains/${name_c}.npz.h5 ]; then
+ #       rm ${base_folder}/chains/${name_c}.npz*
+ #   fi
 
     # Run pipeline
     python -m bbpower BBCompSep --cells_coadded=$base_folder/${name_cls}${all}  --cells_noise=$base_folder/${name_cls}${noise} --cells_fiducial=$base_folder/${name_cls}${fid}    --config=$base_folder/config_files/${name_c}.yml      --param_chains=$base_folder/chains/${name_c}.npz       --config_copy=$base_folder/temp/config_copy.yml
 
-#done
+done
 #done
 #done
 #done

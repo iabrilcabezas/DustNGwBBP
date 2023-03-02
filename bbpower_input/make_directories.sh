@@ -1,6 +1,6 @@
 #!/bin/bash
 
-name_run=230226_LikeDustFilwBin/
+name_run=230227_d10/
 base_folder=/global/cfs/cdirs/act/data/iabril/BBPower/
 
 cd ${base_folder}

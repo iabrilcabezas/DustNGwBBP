@@ -1,6 +1,6 @@
 #!/bin/bash
 
-base_folder=/global/cfs/cdirs/act/data/iabril/BBPower/230226_LikeDustFilwBin
+base_folder=/global/cfs/cdirs/act/data/iabril/BBPower/230227_mask
 #input_folder=/global/common/software/act/iabril/python/DustNGwBBP/bbpower_input
 
 machine=perl
@@ -19,8 +19,8 @@ apodeg=5.0
 smooth=20.0
 w_type=w #wt
 ctype=dcs
-cross=C
-moments=M
+cross=0
+moments=0
 
 bands=all #MF1_UHF2 #
 lminbb=30
@@ -53,9 +53,9 @@ smoothes=( "10.0" "20.0" "40.0")
     echo ${base_folder}
     echo ${name_c}
 
-    if [ -f ${base_folder}/chains/${name_c}.npz.h5 ]; then
-        rm ${base_folder}/chains/${name_c}.npz*
-    fi
+   # if [ -f ${base_folder}/chains/${name_c}.npz.h5 ]; then
+   #     rm ${base_folder}/chains/${name_c}.npz*
+   # fi
 
     # Run pipeline
     python -m bbpower BBCompSep --cells_coadded=$base_folder/${name_cls}${all}  --cells_noise=$base_folder/${name_cls}${noise} --cells_fiducial=$base_folder/${name_cls}${fid}    --config=$base_folder/config_files/${name_c}.yml      --param_chains=$base_folder/chains/${name_c}.npz       --config_copy=$base_folder/temp/config_copy.yml
