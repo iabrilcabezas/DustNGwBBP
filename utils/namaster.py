@@ -8,8 +8,8 @@ import healpy as hp
 import pymaster as nmt
 from astropy import units as u
 from astropy.coordinates import SkyCoord
-from utils.params import PATH_DICT
-
+from utils.params import PATH_DICT, nu0_dust
+from utils.sed import fcmb
 
 def hp_rotate(map_hp, coord):
     """Rotate healpix map between coordinate systems
@@ -180,7 +180,7 @@ def get_mask(nside, mtype, **kwargs):
 
         return w_apo
 
-    if mtype == 'so':
+    if mtype == 'so' or mtype == 'soflat':
 
         # read in SO mask (Figure 8 - SO science & forecasts)
         w_so = hp.read_map(PATH_DICT['so_path'] + 'mask_apodized_david_nside512.fits')
@@ -189,10 +189,31 @@ def get_mask(nside, mtype, **kwargs):
         mask_so_gal = hp_rotate(w_so, coord = ['C','G'])
 
         w_so_hi = hp.ud_grade(mask_so_gal, nside)
-        # not smooth the mask. it says apodized already
-        # w_so_apo = nmt.mask_apodization(w_so_hi, kwargs['apo_deg'], apotype="C1")
+    
+        if mtype == 'so':
 
-        return w_so_hi
+            # not smooth the mask. it says apodized already
+            # w_so_apo = nmt.mask_apodization(w_so_hi, kwargs['apo_deg'], apotype="C1")
+            return w_so_hi
+
+        else:
+
+            so_patch = w_so_hi  > 0.35
+            mask_so_now = np.zeros_like(w_so_hi)
+            mask_so_now[so_patch] = 1
+            assert np.isclose(kwargs['apo_deg'], 5.), 'if apo_deg !=5, fsky is not 0.1'
+            mask_so_apo = nmt.mask_apodization(mask_so_now, kwargs['apo_deg'] , apotype="C1") # apo_deg
+
+            return mask_so_apo
+
+
+    if mtype == 'fsky07':
+
+        fsky07 = hp.read_map(PATH_DICT['planck_data'] + 'HFI_Mask_GalPlane-apo5_2048_R2.00.fits', field = 4) # 60% of sky (70% + apodization)
+        fsky07_hi = hp.ud_grade(fsky07, nside)
+        # already apodized mask
+
+        return fsky07_hi
 
     return None
 
@@ -226,7 +247,8 @@ def get_template_wmask(nside, ttype, mtype, **kwargs):
         # map from which to create anisotropic correlated template
         templ = hp.read_map(PATH_DICT['planck_data']+"HFI_SkyMap_353-psb-field-IQU_2048_R3.00_full.fits")
     if ttype == 'd10':
-        templ = hp.read_map(PATH_DICT['template_path'] + 'dust_d10_353_in_uK_CMB.fits')
+        templ_rj = hp.read_map(PATH_DICT['template_path'] + 'dust_pysm3_small_scales.fits', field = 0)
+        templ = templ_rj / fcmb(nu0_dust) # RJ to CMB units
     else:
         return None
 
