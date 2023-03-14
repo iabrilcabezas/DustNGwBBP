@@ -15,7 +15,7 @@ band_names = get_band_names()
 assert POLARIZATION_cov == 'B', 'script only for B polarization'
 
 def write_config_yml_script(type_cov, params_bbpw, dict_compsep,
-                            cros, mmt):
+                            cros, mmt, dec):
 
     '''
     Writes .yml file used by BBPower in BBCompSep (no plotting!)
@@ -54,8 +54,13 @@ def write_config_yml_script(type_cov, params_bbpw, dict_compsep,
     else:
         name_config += '_0'
 
+    if dec:
+        name_config += '_D'
+    else:
+        name_config += '_0'
+
     if NAME_COMP == 'dcs': #mmt & cros:
-        fun_params_bbpw['nwalk'] = 36
+        fun_params_bbpw['nwalk'] = 128
 
     name_inputs += '_' + type_cov
     path_inputs = PATH_DICT['output_path'] +  name_inputs
@@ -63,7 +68,7 @@ def write_config_yml_script(type_cov, params_bbpw, dict_compsep,
     name_config += '_' + type_cov + '_' + dict_bbcomp['name_config']
     path_config = PATH_DICT['output_path'] + 'config_files/' + name_config + '.yml'
 
-    dict_fgmodel = get_dict_fgmodel(NAME_COMP, cro = cros, mom = mmt)
+    dict_fgmodel = get_dict_fgmodel(NAME_COMP, cro = cros, mom = mmt, decorr=dec)
 
     dict_config = {'global': {'nside': fun_params_bbpw['nside'], 'compute_dell': False},
                    'modules': 'bbpower',

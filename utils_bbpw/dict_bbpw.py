@@ -33,8 +33,13 @@ DICT_CMBMODEL = {'cmb_templates': [PATH_DICT['bbpipe_path'] + 'examples/data/cam
                 'params': {'r_tensor': ['r_tensor', 'tophat', [-0.1, 0.0, 0.1]],
                             'A_lens': ['A_lens', 'tophat', [0.0, 1.0, 2.0]]}}
 
+DICT_COMP1_DECORR = { 'decorr_amp_d' : ['decorr_amp', 'tophat', [0.9, 1.0, 1.1]],
+                      'decorr_nu0_d' : ['decorr_nu0', 'fixed', [353.0]]}
+DICT_COMP2_DECORR = { 'decorr_amp_s' : ['decorr_amp', 'tophat', [0.9, 1.0, 1.1]],
+                      'decorr_nu0_s' : ['decorr_nu0', 'fixed', [23.0]]}
 
-def get_dict_fgmodel(name_comp, cro, mom):
+
+def get_dict_fgmodel(name_comp, cro, mom, decorr):
     '''
     Returns dictionary of foreground model used by BBCompSep according to arguments
 
@@ -56,6 +61,10 @@ def get_dict_fgmodel(name_comp, cro, mom):
     if mom:
         dict_comp1['moments'] = DICT_COMP1_MOMENTS
         dict_comp2['moments'] = DICT_COMP2_MOMENTS
+
+    if decorr:
+        dict_comp1['decorr']  = DICT_COMP1_DECORR
+        dict_comp2['decorr']  = DICT_COMP2_DECORR
 
     dict_fgmodel = {'component_1' : dict_comp1}
 
