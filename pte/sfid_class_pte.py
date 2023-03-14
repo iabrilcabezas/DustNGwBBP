@@ -52,16 +52,16 @@ class SfClass():
 
         # populate with gaussian and NG covariance
         if type_cov == 'wt':
-            cov_ng_full = fits.open(PATH_DICT['output_path'] + NAME_RUN + \
-                                    '_nobin_fullCov.fits')[0].data
+            cov_ng_full = fits.open(PATH_DICT['output_path'] + NAME_RUN + '_' + \
+                                    '_'.join([NAME_COMP, 'Cov', 'nobin']) + '_wt.fits')[0].data
 
         elif type_cov == 'dfwt' or type_cov == 'df00':
             # read-in cov
-            cov_ng = fits.open(DF_OUTPUT_PATH + DF_NAME_RUN + \
-                               '_bin_' + type_cov + '_Cov.fits')[0].data
+            cov_ng = fits.open(PATH_DICT['output_path'] + NAME_RUN +  '_' + \
+                               '_'.join([NAME_COMP, 'Cov', 'bin']) + f'_{type_cov}.fits')[0].data
 
-        cov_g_full  = fits.open(PATH_DICT['output_path'] + \
-                            '_'.join([NAME_RUN, NAME_COMP, 'Cov']) + '_nobin_w.fits')[0].data
+        cov_g_full  = fits.open(PATH_DICT['output_path'] + NAME_RUN + '_' +\
+                            '_'.join([NAME_COMP, 'Cov', 'nobin']) + '_w.fits')[0].data
 
         # select polarization and ell range
         for obj in [self.s_f, self.s_fg, self.s_fng]:

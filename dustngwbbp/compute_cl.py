@@ -27,6 +27,7 @@ nmaps=nmodes*nfreqs
 indices_tr=np.triu_indices(nmaps)
 
 ctype_dict_ncomp = {'d00': 1, 'dc0': 2, 'dcs': 3}
+bincov_dict      = {'wt': 'nobin', 'w': 'nobin', 'df00': 'bin', 'dfwt': 'bin'}
 
 def import_bandpasses():
 
@@ -354,14 +355,13 @@ def compute_cl(ctype, type_cov):
     cov_bpw = np.zeros([ncombs, NBANDS, ncombs, NBANDS])
 
     if type_cov == 'dfwt' or type_cov == 'df00':
-        # read in cov
-        cov_bpw = fits.open(DF_OUTPUT_PATH + DF_NAME_RUN + '_dcs_Cov_bin_'+ \
-                            type_cov + '.fits')[0].data
-        
+        # read in cov, already binned
+        cov_bpw         = fits.open(PATH_DICT['output_path'] + '_'.join([ NAME_RUN, NAME_COMP]) + '_' + \
+                                '_'.join(['Cov', 'bin', type_cov]) + '.fits')[0].data
+
     elif type_cov == 'w' or type_cov == 'wt':
-        cov_bpw_nobin = fits.open(PATH_DICT['output_path'] + \
-                                '_'.join([NAME_RUN, NAME_COMP, 'Cov', 'nobin']) + \
-                                f'_{type_cov}.fits')[0].data
+        cov_bpw_nobin   = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_RUN, NAME_COMP]) + '_' + \
+                                '_'.join(['Cov', 'nobin', type_cov]) + '.fits')[0].data
 
         # cut and bin COV MW matrix:
         for i_tr in range(ncombs):
