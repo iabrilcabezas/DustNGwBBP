@@ -14,9 +14,9 @@ bandpowers:
     nbands: 9
     
 mask:
-    mask_type: 'so'
+    mask_type: 'soflat'
     apo_deg: 5.0
-    smooth_deg: 20. #.NAN #1.
+    smooth_deg: 1.
     dell_nmt: 10
 
 polarization:
@@ -27,7 +27,7 @@ components:
     sync: True
 
 paths:
-    output_path: '/global/cfs/cdirs/act/data/iabril/BBPower/230227_d10/'
+    output_path: '/global/cfs/cdirs/act/data/iabril/BBPower/230306/'
     bicep_BK15: '/global/cfs/cdirs/act/data/iabril/BICEP/'
     bbpipe_path: '/global/cfs/cdirs/act/software/iabril/condaenvs/github_reps/BBPower/'
     planck_path_cori: '/global/cscratch1/sd/iabril/PlanckData/'
