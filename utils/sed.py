@@ -4,12 +4,17 @@ sed
 '''
 
 import numpy as np
+from scipy.constants import physical_constants
 from utils.params import PATH_DICT, EXPERIMENT, band_names_config
 from utils.params import A_dust_BB, EB_dust, alpha_dust_BB, alpha_dust_EE
 from utils.params import beta_dust, temp_dust, nu0_dust
 from utils.params import Alens, lnorm_PL
 from utils.params import A_sync_BB, EB_sync, alpha_sync_BB, alpha_sync_EE
 from utils.params import beta_sync, nu0_sync
+
+h_JHz = physical_constants['Planck constant'][0]
+k_JK  = physical_constants['Boltzmann constant'][0]
+T_CMB =  2.72548 # fFixser 2009
 
 def get_band_names():
 
@@ -37,11 +42,14 @@ def fcmb(nu):
 
     '''
     spectral energy density in CMB units
+
+    ** parameters **
+    nu: float
+        frequency in GHz
     '''
 
-    x = 0.017608676067552197*nu
-    ex = np.exp(x)
-    return ex*(x/(ex-1))**2
+    x = h_JHz * 1e9/(k_JK*T_CMB) *nu
+    return np.exp(x)*(x/(np.expm1(x)))**2
 
 #All spectra
 def comp_sed(nu,nu0,beta,temp,typ):
