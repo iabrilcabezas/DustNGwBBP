@@ -1,6 +1,6 @@
 global_emcee:
   niter: 10000
-  nwalk: 24
+  nwalk: 128
   nside: 256
   
 ranges:
