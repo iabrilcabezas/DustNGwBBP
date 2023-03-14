@@ -99,12 +99,15 @@ DF_DELL = config_dfil.glob.dell
 TYPE_DCOV = config_dfil.glob.tcov
 
 # construct full path
-DF_BASE_PATH = config_dfil.paths.base + config_dfil.paths.sim + config_dfil.paths.base_name
-DF_END_NAME = config_dfil.paths.mid_name + f'{DF_FREQ}' + config_dfil.paths.end_name
+DF_BASE_PATH  = config_dfil.paths.base + config_dfil.paths.sim + config_dfil.paths.base_name
+DF_END_NAME_S = '_Small' + config_dfil.paths.mid_name + f'{DF_FREQ}' + config_dfil.paths.end_name
+DF_END_NAME_A = '_All'   + config_dfil.paths.mid_name + f'{DF_FREQ}' + config_dfil.paths.end_name
 DF_OUTPUT_PATH = config_dfil.paths.base + config_dfil.paths.sim + config_dfil.paths.out
 
 DF_ALPHA = config_dfil.norm.alphad
 DF_AMP   = config_dfil.norm.ampdd
 
-DF_NAME_RUN = f'{DF_FREQ}_{DF_MASK}_{DF_NSIDE}_{abs(DF_ALPHA)}_{DF_AMP}_{DF_LMIN}_{DF_LMAX}_{DF_DELL}_{TYPE_DCOV}'
+DF_NAME_RUN = f'{DF_FREQ}_{DF_MASK}_{DF_NSIDE}_{abs(DF_ALPHA)}_{DF_AMP}_{DF_LMIN}_{DF_LMAX}_{DF_DELL}' #_{TYPE_DCOV}'
+DF_NAME_SIM = f'{DF_FREQ}_{DF_MASK}_{DF_NSIDE}_{DF_LMIN}_{DF_LMAX}_{DF_DELL}'
 print(DF_NAME_RUN)
+print(DF_NAME_SIM)
