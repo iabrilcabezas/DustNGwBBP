@@ -12,8 +12,6 @@ from utils.params import NSIDE, POLARIZATION_cov
 from utils.binning import rebin, cut_array
 from utils.sed import get_band_names
 
-from utils_dustfil.params import DF_OUTPUT_PATH, DF_NAME_RUN
-
 WEIGHT = 'Cl'
 band_names = get_band_names()
 
@@ -55,7 +53,7 @@ class SfClass():
             cov_ng_full = fits.open(PATH_DICT['output_path'] + NAME_RUN + '_' + \
                                     '_'.join([NAME_COMP, 'Cov', 'nobin']) + '_wt.fits')[0].data
 
-        elif type_cov == 'dfwt' or type_cov == 'df00':
+        elif type_cov[:2] == 'df':
             # read-in cov
             cov_ng = fits.open(PATH_DICT['output_path'] + NAME_RUN +  '_' + \
                                '_'.join([NAME_COMP, 'Cov', 'bin']) + f'_{type_cov}.fits')[0].data

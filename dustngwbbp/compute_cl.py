@@ -11,7 +11,6 @@ import sacc
 from astropy.io import fits
 from utils.params import PATH_DICT, NAME_RUN, NAME_COMP
 from utils.params import EXPERIMENT, NSIDE, LMIN, DELL, NBANDS, POLARIZATION_cov
-from utils.params import DF_OUTPUT_PATH, DF_NAME_RUN
 import utils.noise_calc as nc
 from utils.binning import rebin, cut_array
 from utils.sed import get_band_names, Bpass, get_component_spectra, get_convolved_seds
@@ -353,7 +352,7 @@ def compute_cl(ctype, type_cov):
 
     cov_bpw = np.zeros([ncombs, NBANDS, ncombs, NBANDS])
 
-    if type_cov == 'dfwt' or type_cov == 'df00':
+    if type_cov[:2] == 'df':
         # read in cov, already binned
         cov_bpw         = fits.open(PATH_DICT['output_path'] + '_'.join([ NAME_RUN, NAME_COMP]) + '_' + \
                                 '_'.join(['Cov', 'bin', type_cov]) + '.fits')[0].data
