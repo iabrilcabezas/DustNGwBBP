@@ -36,7 +36,7 @@ def get_cov_fromeq(ell_array, cell_array, mcm, corr_factor):
     assert isinstance(corr_factor, float), 'expecting covariance correction factor to be a float'
 
     nells  = len(ell_array)
-    nfreq = cell_array.shape[0] 
+    nfreq = cell_array.shape[0]
     indices_tr = np.triu_indices(nfreq)
     ncombs = len(indices_tr[0])
 
@@ -102,7 +102,8 @@ def compute_cov(ctype, w2_factor):
     name_pol_cov = 'cl_' + 2 * POLARIZATION_cov.lower()
 
     # read in cells
-    s_d = sacc.Sacc.load_fits(PATH_DICT['output_path'] + '_'.join([NAME_RUN, ctype]) + '_clnobin.fits')
+    s_d = sacc.Sacc.load_fits(PATH_DICT['output_path'] + \
+                              '_'.join([NAME_RUN, ctype]) + '_clnobin.fits')
     # read-in coupling matrices
     mw2_matrix = np.loadtxt(name_couplingmatrix_w + '.txt')
     mwt2_matrix = np.loadtxt(name_couplingmatrix_wt + '.txt')
@@ -129,6 +130,12 @@ def compute_cov(ctype, w2_factor):
 
             if i != j:
                 c_ell_all[j][i] = s_d.get_ell_cl(name_pol_cov, f'band{i+1}', f'band{j+1}')[1]
+
+    for i in range(nfreqs):
+        for j in range(i,nfreqs):
+            assert np.all(np.isclose(c_ell_all[i][j] , c_ell_all[i][j].T)), \
+                'cell(f1,f2) != cell(f2,f1)'
+
 
     cov = np.zeros((ncombs, nells, ncombs, nells)) + np.nan
     cov_w = np.zeros((ncombs, nells, ncombs, nells)) + np.nan
@@ -171,10 +178,18 @@ def compute_cov(ctype, w2_factor):
                     # covariance between different frequency channels
                     cov[i_tr,a_ell,j_tr,b_ell] = c1_l12 * c2_l12 + c3_l12 * c4_l12
 
+            assert np.all(np.isclose(cov[i_tr, :, j_tr,:], cov[i_tr,:,j_tr,:].T)), \
+                    'cell4freq not diag'
+
             # all factors together
             prefactor = np.multiply(cov[i_tr,:,j_tr,:], prefactor_l)
             cov_w[i_tr,:,j_tr,:] = np.multiply(mw2_matrix, prefactor)
             cov_wt[i_tr,:,j_tr,:] = np.multiply(mwt2_matrix, prefactor)
+
+            assert np.all(np.isclose(cov_w[i_tr,:,j_tr,:], cov_w[i_tr,:,j_tr,:].T)) ,\
+                    f'({i_tr},{j_tr}) w cov is not diagonal'
+            assert np.all(np.isclose(cov_wt[i_tr,:,j_tr,:], cov_wt[i_tr,:,j_tr,:].T)) ,\
+                    f'({i_tr},{j_tr}) wt cov is not diagonal'
 
     # save to fits file
     hdu_w = fits.PrimaryHDU(cov_w)
@@ -185,7 +200,7 @@ def compute_cov(ctype, w2_factor):
     if ctype == 'd00':
         hdu_wt.writeto(PATH_DICT['output_path'] + '_'.join([NAME_RUN, ctype, 'Cov']) +\
                     '_nobin_wt.fits', overwrite = True)
-    return None
+
 
 
 def get_effective_cov():
@@ -221,7 +236,7 @@ def get_effective_cov():
     hdu_cov = fits.PrimaryHDU(total_cov)
     hdu_cov.writeto(PATH_DICT['output_path'] + '_'.join([NAME_RUN, NAME_COMP, 'Cov']) + '_nobin_wt.fits', overwrite = True)
 
-def get_crazy_cov(covtype):
+def get_crazy_cov():#covtype):
 
     '''
 
@@ -270,4 +285,3 @@ def get_crazy_cov(covtype):
     # hdu_cov = fits.PrimaryHDU(total_cov)
     # hdu_cov.writeto(PATH_DICT['output_path'] + NAME_RUN + '_nobin_fullCov.fits', overwrite = True)
     print('currently invalid function')
-    return None
