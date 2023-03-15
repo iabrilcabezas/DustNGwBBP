@@ -20,6 +20,67 @@ nmodes = len(POLARIZATION_cov)
 
 lmax, _, _, _ = get_ell_arrays(LMIN, DELL, NBANDS)
 
+def get_cov_fromeq(ell_array, cell_array, mcm, corr_factor):
+
+    '''
+    computes covariance matrix from equation A20
+    
+    '''
+
+
+    assert len(ell_array) == cell_array.shape[-1], 'ell and C_ell dimensions do not match'
+    assert cell_array.shape[0] == cell_array.shape[1], 'cell frequency cross not square'
+    # assert mcm.shape[0] == 3 * nside, 'mode coupling matrix is not matching required resolution'
+    assert mcm.shape[0] == mcm.shape[1], 'mode coupling matrix is not square'
+    assert len(ell_array) == mcm.shape[0], 'ell and M_\ell,\ellprime x-dimension do not match'
+    assert isinstance(corr_factor, float), 'expecting covariance correction factor to be a float'
+
+    nells  = len(ell_array)
+    nfreq = cell_array.shape[0] 
+    indices_tr = np.triu_indices(nfreq)
+    ncombs = len(indices_tr[0])
+
+    prefactor_l = np.zeros([nells, nells]) + np.nan
+    sum_m_f     = 1 / (2 * ell_array + 1)
+    sum_m_f    /= corr_factor
+
+    for i in range(int(nells)):
+        prefactor_l[:, i ] = sum_m_f[i] * np.ones(nells)
+
+    cov_clean  = np.zeros((ncombs, nells, ncombs, nells)) + np.nan
+    cov_output = np.zeros((ncombs, nells, ncombs, nells)) + np.nan
+
+    for i_tr, (i_tr1,i_tr2) in enumerate(zip(indices_tr[0], indices_tr[1])):
+        print(i_tr)
+        for j_tr, (j_tr1,j_tr2) in enumerate(zip(indices_tr[0], indices_tr[1])):
+
+            cl1 = cell_array[i_tr1][j_tr1]
+            cl2 = cell_array[i_tr2][j_tr2]
+            cl3 = cell_array[i_tr1][j_tr2]
+            cl4 = cell_array[i_tr2][j_tr1]
+
+            for a_ell in range(nells):
+                for b_ell in range(nells):
+                    # calculate mean between cl at different ells
+                    c1_l12 = np.sqrt(cl1[a_ell] * cl1[b_ell])
+                    c2_l12 = np.sqrt(cl2[a_ell] * cl2[b_ell])
+                    c3_l12 = np.sqrt(cl3[a_ell] * cl3[b_ell])
+                    c4_l12 = np.sqrt(cl4[a_ell] * cl4[b_ell])
+                    # covariance between different frequency channels
+                    cov_clean[i_tr,a_ell,j_tr,b_ell] = c1_l12 * c2_l12 + c3_l12 * c4_l12
+
+            assert np.all(np.isclose(cov_clean[i_tr, :, j_tr,:], cov_clean[i_tr,:,j_tr,:].T)), \
+                    'cell4freq not diag'
+
+            # all factors together
+            prefactor = np.multiply(cov_clean[i_tr,:,j_tr,:], prefactor_l)
+            cov_output[i_tr,:,j_tr,:]  = np.multiply(mcm, prefactor)
+
+            assert np.all(np.isclose(cov_output[i_tr,:,j_tr,:], cov_output[i_tr,:,j_tr,:].T)) ,\
+                    f'({i_tr},{j_tr}) output cov is not diagonal'
+
+    return cov_output
+
 def compute_cov(ctype, w2_factor):
 
     '''
@@ -49,7 +110,7 @@ def compute_cov(ctype, w2_factor):
     tr_names = sorted(list(s_d.tracers.keys()))
 
     # read ell of cls from the first band (tr_names)
-    ellcl, _ = s_d.get_ell_cl(name_pol_cov, tr_names[0], tr_names[0], return_cov = False)
+    ellcl = s_d.get_ell_cl(name_pol_cov, tr_names[0], tr_names[0], return_cov = False)[0]
 
     nells = len(ellcl)
     assert nells == mw2_matrix.shape[0], 'using matrix or Cl that should not be binned'
