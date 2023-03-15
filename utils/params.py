@@ -295,6 +295,16 @@ class ExtConfig:
     def __init__(self, param):
         self.machine = param['machine']
 
+class DustFilaments:
+
+    '''
+    2nd level class of config file
+    Contains parameters for DustFilaments sims
+    '''
+
+    def __init__(self, param):
+        self.nsims = param['nsims']
+        self.paths = param['paths']
 
 class Config:
 
@@ -322,6 +332,7 @@ class Config:
         self.band_names   = BandConfig(param['band_names'])
         self.components   = CompConfig(param['components'])
         self.external     = ExtConfig(param['external'])
+        self.dustfil      = DustFilaments(param['dust_filaments'])
 
 
 with open('config.yaml', 'r', encoding = 'utf-8') as config_file:
@@ -366,6 +377,15 @@ alpha_sync_BB =  sync_params['alpha_sync_BB']
 beta_sync =  sync_params['beta_sync']
 nu0_sync = sync_params['nu0_sync']
 
+DF_NSIMS = config.dustfil.nsims
+# construct full path
+DF_PATHS = config.dustfil.paths
+
+DF_BASE_PATH  = DF_PATHS['base'] + DF_PATHS['sim'] + DF_PATHS['base_name']
+DF_END_NAME_S = '_Small' + DF_PATHS['mid_name'] + f'{int(nu0_dust)}' + DF_PATHS['end_name']
+DF_END_NAME_A = '_All'   + DF_PATHS['mid_name'] + f'{int(nu0_dust)}' + DF_PATHS['end_name']
+DF_OUTPUT_PATH = DF_PATHS['base'] + DF_PATHS['sim'] + DF_PATHS['output']
+
 PATH_DICT = dict(pathnames())
 
 namerun_dict = {**config.global_param.__dict__, **config.bpw_param.__dict__, \
@@ -379,7 +399,12 @@ NAME_RUN  = get_namerun(namerun_dict) + '_' + NAME_COMP
 name_couplingmatrix_w = PATH_DICT['output_path'] + NAME_COUPLINGM + '_couplingM_w' # .txt'
 name_couplingmatrix_wt = PATH_DICT['output_path'] + NAME_COUPLINGM + '_couplingM_wt' #.txt'
 
+DF_NAME_RUN = f'{int(nu0_dust)}_{MTYPE}_{NSIDE}_{abs(alpha_dust_BB)}_{A_dust_BB}_{LMIN}_{NBANDS}_{DELL}'
+DF_NAME_SIM = f'{int(nu0_dust)}_{MTYPE}_{NSIDE}_{LMIN}_{NBANDS}_{DELL}'
+
 print(NAME_RUN)
+print(DF_OUTPUT_PATH)
+
 # print(PATH_DICT)
 # print(NAME_COMP)
 # print(NAME_COUPLINGM)

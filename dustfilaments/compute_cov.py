@@ -9,28 +9,36 @@ import pymaster as nmt
 import healpy as hp
 from astropy.io import fits
 from scipy.optimize import curve_fit
-from utils_dustfil.params import DF_BASE_PATH, DF_OUTPUT_PATH, DF_END_NAME_S, DF_END_NAME_A
-from utils_dustfil.params import DF_NAME_RUN, DF_NAME_SIM
-from utils_dustfil.params import DF_FREQ, DF_NSIDE, DF_MASK
-from utils_dustfil.params import DF_ALPHA, DF_AMP
-from utils_dustfil.params import DF_LMIN, DF_LMAX, DF_DELL
+from pymaster.workspaces import compute_coupled_cell
+from dustngwbbp.compute_cl import import_bandpasses
+from dustngwbbp.compute_couplingmatrix import compute_couplingmatrix
+from dustngwbbp.compute_cov import get_cov_fromeq
 from utils.sed import dl_plaw, get_band_names, get_convolved_seds
 from utils.binning import rebin, cut_array
 from utils.noise_calc import get_fsky
 from utils.namaster import binning_bbpower, get_mask
-from utils.params import POLARIZATION_cov, NAME_RUN, PATH_DICT, NSIDE, NAME_COMP
+from utils.params import POLARIZATION_cov, NAME_RUN, PATH_DICT, NAME_COMP
 from utils.params import name_couplingmatrix_wt, name_couplingmatrix_w, COV_CORR, config
-from dustngwbbp.compute_cl import import_bandpasses
-from dustngwbbp.compute_couplingmatrix import compute_couplingmatrix
+from utils.params import DF_BASE_PATH, DF_OUTPUT_PATH, DF_END_NAME_A, DF_END_NAME_S
+from utils.params import DF_NAME_RUN, DF_NAME_SIM
+from utils.params import nu0_dust as DF_FREQ
+from utils.params import NSIDE, MTYPE
+from utils.params import alpha_dust_BB as DF_ALPHA
+from utils.params import A_dust_BB as DF_AMP
+from utils.params import LMIN, DELL, NBANDS
+from utils.bandpowers import get_ell_arrays
 
-b_df, ell_eff_df = binning_bbpower(DF_LMIN, DF_LMAX, DF_DELL, DF_NSIDE)
-nell_df = len(ell_eff_df)
-mask_so_gal = get_mask(DF_NSIDE, DF_MASK, **config.mask_param.__dict__)
+LMAX, LARR_ALL, LBANDS, LEFF = get_ell_arrays(LMIN, DELL, NBANDS)
+b_df, ell_eff_df = binning_bbpower(LMIN, LMAX, DELL, NSIDE)
+mask_so_gal = get_mask(NSIDE, MTYPE, **config.mask_param.__dict__)
+w2_mean = compute_couplingmatrix(**config.mask_param.__dict__)
 fsky = get_fsky()
 
 band_names = get_band_names()
-
 bpss       = import_bandpasses()
+# extract SED scalings
+seds_dd = get_convolved_seds(band_names, bpss)[1] # dust component
+
 
 nfreqs = len(band_names)
 nmodes = len(POLARIZATION_cov)
@@ -48,9 +56,29 @@ def model_dustfil_dust(x, Ad):
     cell_dust = dell_dust / ( (x * (x + 1)) / (2 * np.pi) )
     return cell_dust
 
+def cell0_tofreqs(cell_array, seds):
+
+    '''
+    take Cell at f0 and extrapolate to other frequencies
+    '''
+
+    nfreq = len(seds)
+    nell   = len(cell_array)
+
+    cell_freq = np.zeros([nfreq, nfreq, nell]) + np.nan
+
+    for i in range(nfreq):
+        for j in range(nfreq):
+            cell_freq[i][j] = cell_array * seds[i] * seds[j]
+
+    for i in range(nfreq):
+        for j in range(i,nfreq):
+            assert np.all(cell_freq[i][j] == cell_freq[i][j].T), 'cell(f1,f2) != cell(f2,f1)'
+
+    return cell_freq
 
 
-def compute_cell_dustfil(nseeds):
+def compute_cell_bin_dustfil(nseeds):
 
     '''
     Measures power spectrum of all DF simulations in the bandpowers of BBPower
@@ -86,32 +114,80 @@ def compute_cell_dustfil(nseeds):
 
     # save to fits file
     hdu_cl_s= fits.PrimaryHDU(cl_store_small)
-    hdu_cl_s.writeto(DF_OUTPUT_PATH + f'cl_BB_{DF_NAME_SIM}_small.fits', overwrite = True)
+    hdu_cl_s.writeto(DF_OUTPUT_PATH + f'cl_BB_{DF_NAME_SIM}_bin_small.fits', overwrite = True)
 
     hdu_cl_a = fits.PrimaryHDU(cl_store_all)
-    hdu_cl_a.writeto(DF_OUTPUT_PATH + f'cl_BB_{DF_NAME_SIM}_all.fits', overwrite = True)
+    hdu_cl_a.writeto(DF_OUTPUT_PATH + f'cl_BB_{DF_NAME_SIM}_bin_all.fits', overwrite = True)
+
+def compute_cell_nobin_dustfil(nseeds, nside):
+
+    '''
+    procedure from alonso. computes cell of masked map at each ell
+    '''
+
+    # number of simulations available
+    seeds = np.arange(nseeds)
+
+    # initialize array
+    cl_store_all = np.zeros((nseeds, 3 * nside)) + np.nan
+    cl_store_small = np.zeros((nseeds, 3 * nside)) + np.nan
+
+    for i, seed in enumerate(seeds):
+        print(i)
+        # extract sim
+        filament_s = DF_BASE_PATH  + f'{seed:03}' + DF_END_NAME_S
+        filament_a = DF_BASE_PATH  + f'{seed:03}' + DF_END_NAME_A
+        # compute power spectrum on SO patch
+        maps_s = hp.read_map(filament_s, field = [1,2])
+        maps_a = hp.read_map(filament_a, field = [1,2])
+
+        maps_s = hp.ud_grade(maps_s, nside)
+        maps_a = hp.ud_grade(maps_a, nside)
+
+        f1_s = nmt.NmtField(np.ones(hp.nside2npix(nside)), mask_so_gal * maps_s)
+        f1_a = nmt.NmtField(np.ones(hp.nside2npix(nside)), mask_so_gal * maps_a)
+
+        cl_store_small[i] = compute_coupled_cell(f1_s,f1_s)[3] / w2_mean
+        cl_store_all[i]   = compute_coupled_cell(f1_a, f1_a)[3] / w2_mean
+
+    # save to fits file
+    hdu_cl_s= fits.PrimaryHDU(cl_store_small)
+    hdu_cl_s.writeto(DF_OUTPUT_PATH + f'cl_BB_{DF_NAME_SIM}_nobin_small.fits', overwrite = True)
+
+    hdu_cl_a = fits.PrimaryHDU(cl_store_all)
+    hdu_cl_a.writeto(DF_OUTPUT_PATH + f'cl_BB_{DF_NAME_SIM}_nobin_all.fits', overwrite = True)
 
 
-def calibrate_cells():
+def calibrate_cells(bin_type):
 
     '''
     Scales 353 GHz covariance matrix to match dust model amplitude
     '''
 
-    assert DF_FREQ == 353, 'SED scaling =1 for 353GHz, use it!'
+    assert int(DF_FREQ) == 353, 'SED scaling =1 for 353GHz, use it!'
 
     # open previously computed Cell of maps
-    cl_all   = fits.open(DF_OUTPUT_PATH + f'cl_BB_{DF_NAME_SIM}_all.fits')[0].data
-    cl_small = fits.open(DF_OUTPUT_PATH + f'cl_BB_{DF_NAME_SIM}_small.fits')[0].data
+    cl_all   = fits.open(DF_OUTPUT_PATH + f'cl_BB_{DF_NAME_SIM}_{bin_type}_all.fits')[0].data
+    cl_small = fits.open(DF_OUTPUT_PATH + f'cl_BB_{DF_NAME_SIM}_{bin_type}_small.fits')[0].data
     # calculate <Cell> across sims
     mean_cell = np.mean(cl_all, axis  = 0)
 
     # START CALIBRATION
+    if bin_type == 'nobin':
+        ell_array = np.arange(len(mean_cell))
+        delta_ell = 1.
+
+    elif bin_type == 'bin':
+        ell_array = ell_eff_df
+        delta_ell = DELL
+
+    mask = (ell_array < 300) & (ell_array > 30)
 
     # approximate error of <Cell> with Knox formula
-    sigma_cell = np.sqrt(2 /  (( 2 * ell_eff_df + 1) * fsky * DF_DELL) ) * mean_cell
+    sigma_cell = np.sqrt(2 /  (( 2 * ell_array + 1) * fsky * delta_ell) ) * mean_cell
     # perform chi2 fit with power-law model
-    popt, _ = curve_fit(model_dustfil_dust, ell_eff_df, mean_cell, sigma = sigma_cell )
+    popt = curve_fit(model_dustfil_dust, \
+                     ell_array[mask], mean_cell[mask], sigma = sigma_cell[mask] )[0]
     # extract overall normalization of power spectrum
     scaling_sims = popt[0]
     # renormalize to chosen amplitude
@@ -120,12 +196,14 @@ def calibrate_cells():
 
     # save to fits file
     hdu_cl_s= fits.PrimaryHDU(cl_small)
-    hdu_cl_s.writeto(DF_OUTPUT_PATH + f'cl_BB_{DF_NAME_SIM}_small_cal.fits', overwrite = True)
+    hdu_cl_s.writeto(DF_OUTPUT_PATH + \
+                     f'cl_BB_{DF_NAME_SIM}_{bin_type}_small_cal.fits', overwrite = True)
 
     hdu_cl_a = fits.PrimaryHDU(cl_all)
-    hdu_cl_a.writeto(DF_OUTPUT_PATH + f'cl_BB_{DF_NAME_SIM}_all_cal.fits', overwrite = True)
+    hdu_cl_a.writeto(DF_OUTPUT_PATH + \
+                     f'cl_BB_{DF_NAME_SIM}_{bin_type}_all_cal.fits', overwrite = True)
 
-def compute_cov_fromsims(scale = 'small'):
+def compute_cov_fromsims(scale = 'small', bin_type = 'bin'):
 
     '''
     computes covariance with np.cov()
@@ -133,15 +211,14 @@ def compute_cov_fromsims(scale = 'small'):
 
     assert scale == 'small', 'only small sim has true covariance'
 
-    cl_small = fits.open(DF_OUTPUT_PATH + f'cl_BB_{DF_NAME_SIM}_{scale}_cal.fits')[0].data
+    cl_small = fits.open(DF_OUTPUT_PATH +\
+                         f'cl_BB_{DF_NAME_SIM}_{bin_type}_{scale}_cal.fits')[0].data
 
     # compute covariance
     cov_cl_sims = np.cov(cl_small, rowvar = False)
-    # extract SED scalings
-    seds_dd = get_convolved_seds(band_names, bpss)[1] # dust component
 
     # obtain cov at all frequencies (assumes no decorrelation)
-    cov_dustfil_scale_full = np.zeros((ncombs, nell_df, ncombs, nell_df )) + np.nan
+    cov_dustfil_scale_full = np.zeros((ncombs, NBANDS, ncombs, NBANDS )) + np.nan
 
     # populate covariance
     for i_tr, (i_tr1,i_tr2) in enumerate(zip(indices_tr[0], indices_tr[1])):
@@ -151,83 +228,52 @@ def compute_cov_fromsims(scale = 'small'):
             cov_dustfil_scale_full[i_tr,:,j_tr, :] = cov_cl_sims * sed_scaling
     # save to fits file
     hdu_cov = fits.PrimaryHDU(cov_dustfil_scale_full)
-    hdu_cov.writeto(DF_OUTPUT_PATH + DF_NAME_RUN + '_d00_Cov_bin_df00.fits', overwrite = True)
+    hdu_cov.writeto(DF_OUTPUT_PATH + DF_NAME_RUN +\
+                    f'_d00_Cov_{bin_type}_df00.fits', overwrite = True)
 
-def compute_tildecov(scale):
+def compute_tildecov(scale, bin_type):
 
     '''
-    Computes \tilde{Cov}, given by eqn A20 with mean cell from sims
+    Computes \\tilde{Cov}, given by eqn A20 with mean cell from sims
     '''
+    assert bin_type == 'nobin', 'correct expression is with binning after computing cov'
 
-    cl_f0_sims = fits.open(DF_OUTPUT_PATH + f'cl_BB_{DF_NAME_SIM}_{scale}_cal.fits')[0].data
+    cl_f0_sims = fits.open(DF_OUTPUT_PATH + \
+                           f'cl_BB_{DF_NAME_SIM}_{bin_type}_{scale}_cal.fits')[0].data
     cl_f0      = np.mean(cl_f0_sims, axis  = 0) # mean across sims
 
     if scale == 'small':
-        m2_matrix_nobin = np.loadtxt(name_couplingmatrix_w + '.txt')
+        mcm = np.loadtxt(name_couplingmatrix_w + '.txt')
     elif scale == 'all':
-        m2_matrix_nobin = np.loadtxt(name_couplingmatrix_wt + '.txt')
+        mcm = np.loadtxt(name_couplingmatrix_wt + '.txt')
 
-    w2_mean = compute_couplingmatrix(**config.mask_param.__dict__)
+    c_ell_freqs = cell0_tofreqs(cl_f0, seds_dd)
+    ell_array   = np.arange(c_ell_freqs.shape[-1]) # works for nobin, otherwise rescribed below
 
-    m2_matrix = rebin(cut_array(m2_matrix_nobin, \
-                                  np.arange(3 * NSIDE), DF_LMIN, DF_LMAX), [nell_df, nell_df])
+    if bin_type == 'bin':
+        mcm = rebin(cut_array(mcm, np.arange(3 * NSIDE), LMIN, LMAX), [NBANDS, NBANDS])
+        ell_array = ell_eff_df
 
-    c_ell_freqs = np.zeros((nfreqs, nfreqs, nell_df)) + np.nan
-    # extract SED scalings
-    seds_dd = get_convolved_seds(band_names, bpss)[1] # dust component
+    if bin_type == 'nobin':
+        assert len(ell_array) == 3 * NSIDE
 
-    # populate C_ell_all
-    for i in range(nfreqs):
-        for j in range(i, nfreqs):
-
-            c_ell_freqs[i][j] = cl_f0 * seds_dd[i] * seds_dd[j]
-
-            if i!=j:
-                c_ell_freqs[j][i] = cl_f0 * seds_dd[i] * seds_dd[j]
-
-    cov    = np.zeros((ncombs, nell_df, ncombs, nell_df)) + np.nan
-    cov_wt = np.zeros((ncombs, nell_df, ncombs, nell_df)) + np.nan
-
-    # compute prefactor of covariance
-    prefactor_l = np.zeros([nell_df, nell_df]) + np.nan
-
-    sum_m_f = 1 / (2 * ell_eff_df + 1)
-
-    # NO COV_CORR CORRECTION?
     assert COV_CORR == 'w2', 'only implemented for w2 correction'
-    if COV_CORR == 'w2':
-        sum_m_f /= ( w2_mean**2 )
+    cov_tilde = get_cov_fromeq(ell_array, c_ell_freqs, mcm, w2_mean**2)
+    hdu_wt_nobin = fits.PrimaryHDU(cov_tilde)
+    hdu_wt_nobin.writeto(DF_OUTPUT_PATH + DF_NAME_RUN +\
+                         f'_d00_Cov_nobin_dft{scale[0]}.fits', overwrite = True)
 
-    for i in range(int(nell_df)):
-        prefactor_l[:, i ] = sum_m_f[i] * np.ones(nell_df)
+    cov_tilde_bin = np.zeros([ncombs, NBANDS, ncombs, NBANDS])
 
-    # populate covariance
-    for i_tr, (i_tr1,i_tr2) in enumerate(zip(indices_tr[0], indices_tr[1])):
-        print(i_tr)
-        for j_tr, (j_tr1,j_tr2) in enumerate(zip(indices_tr[0], indices_tr[1])):
-
-            cl1 = c_ell_freqs[i_tr1][j_tr1]
-            cl2 = c_ell_freqs[i_tr2][j_tr2]
-            cl3 = c_ell_freqs[i_tr1][j_tr2]
-            cl4 = c_ell_freqs[i_tr2][j_tr1]
-
-            for a_ell in range(nell_df):
-                for b_ell in range(nell_df):
-                    # calculate mean between cl at different ells
-                    c1_l12 = np.sqrt(cl1[a_ell] * cl1[b_ell])
-                    c2_l12 = np.sqrt(cl2[a_ell] * cl2[b_ell])
-                    c3_l12 = np.sqrt(cl3[a_ell] * cl3[b_ell])
-                    c4_l12 = np.sqrt(cl4[a_ell] * cl4[b_ell])
-                    # covariance between different frequency channels
-                    cov[i_tr,a_ell,j_tr,b_ell] = c1_l12 * c2_l12 + c3_l12 * c4_l12
-
-            # all factors together
-            prefactor = np.multiply(cov[i_tr,:,j_tr,:], prefactor_l)
-            cov_wt[i_tr,:,j_tr,:] = np.multiply(m2_matrix, prefactor)
+    for i_tr in range(ncombs):
+        for j_tr in range(ncombs):
+            cov_tilde_bin[i_tr,:,j_tr,:] = rebin(cut_array(cov_tilde[i_tr,:,j_tr,:],\
+                                    np.arange(3 * NSIDE), LMIN, LMAX), [NBANDS, NBANDS])
 
     # save to fits file
-    hdu_wt = fits.PrimaryHDU(cov_wt)
-    hdu_wt.writeto(DF_OUTPUT_PATH + DF_NAME_RUN + f'_d00_Cov_bin_dft{scale[0]}.fits', overwrite = True)
+    hdu_wt = fits.PrimaryHDU(cov_tilde_bin)
+    hdu_wt.writeto(DF_OUTPUT_PATH + DF_NAME_RUN + \
+                   f'_d00_Cov_bin_dft{scale[0]}.fits', overwrite = True)
 
 
 def merge_cov(method):
@@ -244,12 +290,12 @@ def merge_cov(method):
         dustwt_nobin = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_RUN, 'd00', 'Cov']) +\
                                 '_nobin_wt.fits')[0].data
 
-        dustwt_bin = np.zeros([ncombs, nell_df, ncombs, nell_df])
+        dustwt_bin = np.zeros([ncombs, NBANDS, ncombs, NBANDS])
 
         for i_tr in range(ncombs):
             for j_tr in range(ncombs):
                 dustwt_bin[i_tr,:, j_tr,:] = rebin(cut_array(dustwt_nobin[i_tr,:, j_tr,:], \
-                                                np.arange(3 * NSIDE), DF_LMIN, DF_LMAX), [nell_df, nell_df])
+                                                np.arange(3 * NSIDE), LMIN, LMAX), [NBANDS, NBANDS])
 
         dust_dustfil = fits.open(DF_OUTPUT_PATH + DF_NAME_RUN + '_d00_Cov_bin_df00.fits')[0].data
 
@@ -284,14 +330,14 @@ def compute_full_cov(type_dustcov):
     cov_dustw   = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_RUN, 'd00', 'Cov']) +\
                             '_nobin_w.fits')[0].data
 
-    cov_allw_bin    = np.zeros([ncombs, nell_df, ncombs, nell_df])
-    cov_dustw_bin   = np.zeros([ncombs, nell_df, ncombs, nell_df])
+    cov_allw_bin    = np.zeros([ncombs, NBANDS, ncombs, NBANDS])
+    cov_dustw_bin   = np.zeros([ncombs, NBANDS, ncombs, NBANDS])
     for i_tr in range(ncombs):
         for j_tr in range(ncombs):
             cov_allw_bin[i_tr,:, j_tr,:]  = rebin(cut_array(cov_allw[i_tr,:, j_tr,:], \
-                                            np.arange(3 * NSIDE), DF_LMIN, DF_LMAX), [nell_df, nell_df])
+                                            np.arange(3 * NSIDE), LMIN, LMAX), [NBANDS, NBANDS])
             cov_dustw_bin[i_tr,:, j_tr,:] = rebin(cut_array(cov_dustw[i_tr,:, j_tr,:], \
-                                            np.arange(3 * NSIDE), DF_LMIN, DF_LMAX), [nell_df, nell_df])
+                                            np.arange(3 * NSIDE), LMIN, LMAX), [NBANDS, NBANDS])
 
 
     # Cov = Cov(all, gaussian) + [ Cov(dust, non gaussian) - Cov(dust, gaussian) ]
@@ -299,5 +345,6 @@ def compute_full_cov(type_dustcov):
     # save to fits file
     assert NAME_COMP == 'dcs', 'you are computing a full cov with nothing but dust'
     hdu_cov = fits.PrimaryHDU(total_cov)
-    hdu_cov.writeto(PATH_DICT['output_path'] + '_'.join([ NAME_RUN, NAME_COMP, 'Cov_bin', type_dustcov]) + '.fits',\
+    hdu_cov.writeto(PATH_DICT['output_path'] + \
+                    '_'.join([ NAME_RUN, NAME_COMP, 'Cov_bin', type_dustcov]) + '.fits',\
                     overwrite = True)

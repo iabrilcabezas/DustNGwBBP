@@ -11,12 +11,11 @@ import sacc
 from astropy.io import fits
 from utils.params import PATH_DICT, NAME_RUN, NAME_COMP
 from utils.params import EXPERIMENT, NSIDE, LMIN, DELL, NBANDS, POLARIZATION_cov
+from utils.params import DF_OUTPUT_PATH, DF_NAME_RUN
 import utils.noise_calc as nc
 from utils.binning import rebin, cut_array
 from utils.sed import get_band_names, Bpass, get_component_spectra, get_convolved_seds
 from utils.bandpowers import get_ell_arrays, dell2cell_lmax
-
-from utils_dustfil.params import DF_OUTPUT_PATH, DF_NAME_RUN
 
 band_names = get_band_names()
 LMAX, LARR_ALL, LBANDS, LEFF = get_ell_arrays(LMIN, DELL, NBANDS)
