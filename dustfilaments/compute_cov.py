@@ -73,12 +73,13 @@ def cell0_tofreqs(cell_array, seds):
 
     for i in range(nfreq):
         for j in range(i,nfreq):
-            assert np.all(cell_freq[i][j] == cell_freq[i][j].T), 'cell(f1,f2) != cell(f2,f1)'
+            assert np.all(np.isclose(cell_freq[i][j], cell_freq[i][j].T)), \
+                'cell(f1,f2) != cell(f2,f1)'
 
     return cell_freq
 
 
-def compute_cell_bin_dustfil(nseeds):
+def compute_cell_bin_dustfil(nseeds, nside):
 
     '''
     Measures power spectrum of all DF simulations in the bandpowers of BBPower
@@ -101,16 +102,21 @@ def compute_cell_bin_dustfil(nseeds):
         filament_s = DF_BASE_PATH  + f'{seed:03}' + DF_END_NAME_S
         filament_a = DF_BASE_PATH  + f'{seed:03}' + DF_END_NAME_A
         # compute power spectrum on SO patch
-        f_2_fil_s = nmt.NmtField(mask_so_gal, hp.read_map(filament_s, field = [1,2]))
+        maps_s = hp.read_map(filament_s, field = [1,2])
+        maps_a = hp.read_map(filament_a, field = [1,2])
+
+        maps_s = hp.ud_grade(maps_s, nside)
+        maps_a = hp.ud_grade(maps_a, nside)
+
+        f_2_fil_s = nmt.NmtField(mask_so_gal, maps_s)
         cl_22_s = nmt.compute_full_master(f_2_fil_s, f_2_fil_s, b_df)
         # extract BB spectrum
         cl_store_small[i] = cl_22_s[3] # only interested in BB mode
 
-        f_2_fil_a = nmt.NmtField(mask_so_gal, hp.read_map(filament_a, field = [1,2]))
+        f_2_fil_a = nmt.NmtField(mask_so_gal, maps_a)
         cl_22_a = nmt.compute_full_master(f_2_fil_a, f_2_fil_a, b_df)
         # extract BB spectrum
         cl_store_all[i] = cl_22_a[3] # only interested in BB mode
-
 
     # save to fits file
     hdu_cl_s= fits.PrimaryHDU(cl_store_small)
@@ -212,10 +218,14 @@ def compute_cov_fromsims(scale = 'small', bin_type = 'bin'):
     assert scale == 'small', 'only small sim has true covariance'
 
     cl_small = fits.open(DF_OUTPUT_PATH +\
-                         f'cl_BB_{DF_NAME_SIM}_{bin_type}_{scale}_cal.fits')[0].data
+                         f'cl_BB_{DF_NAME_SIM}_nobin_{scale}_cal.fits')[0].data
 
     # compute covariance
     cov_cl_sims = np.cov(cl_small, rowvar = False)
+
+    if bin_type == 'bin':
+        cov_cl_sims = rebin(cut_array(cov_cl_sims, \
+                                      np.arange(3 * NSIDE), LMIN, LMAX), [NBANDS, NBANDS])
 
     # obtain cov at all frequencies (assumes no decorrelation)
     cov_dustfil_scale_full = np.zeros((ncombs, NBANDS, ncombs, NBANDS )) + np.nan
@@ -311,7 +321,10 @@ def merge_cov(method):
 
     # save to fits file
     hducov = fits.PrimaryHDU(merged_cov)
-    hducov.writeto(DF_OUTPUT_PATH + DF_NAME_RUN + '_d00_Cov_bin_dfwt.fits', overwrite = True)
+    name_tosave = '_d00_Cov_bin_dfwt'
+    if method == 'blake':
+        name_tosave += 'm'
+    hducov.writeto(DF_OUTPUT_PATH + DF_NAME_RUN + name_tosave + '.fits', overwrite = True)
 
     return None
 
