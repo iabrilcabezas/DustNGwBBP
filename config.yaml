@@ -27,7 +27,7 @@ components:
     sync: True
 
 paths:
-    output_path: '/global/cfs/cdirs/act/data/iabril/BBPower/230306/'
+    output_path: '/global/cfs/cdirs/act/data/iabril/BBPower/230315/'
     bicep_BK15: '/global/cfs/cdirs/act/data/iabril/BICEP/'
     bbpipe_path: '/global/cfs/cdirs/act/software/iabril/condaenvs/github_reps/BBPower/'
     planck_path_cori: '/global/cscratch1/sd/iabril/PlanckData/'
@@ -63,10 +63,19 @@ cosmology:
     model:
         lnorm_PL: 80.        # PL param 1801.04945
     
-#    nparams: 8 # + 1 if cross, + 4 if moments
-
 band_names:
     SO: ['LF1', 'LF2', 'MF1', 'MF2', 'UHF1', 'UHF2']
     BICEP: ['95', '150', '220']
 
+dust_filaments:
+    nsims: 200
+    paths:
+        base: '/global/cfs/cdirs/act/data/iabril/DustFilaments/'
+        sim:  'sims_230306/'
+        output: 'analysis2/'
+        base_name: 'DustFilaments_TQU_180p5M_400pc_LR71_GNILC-unires_ell-limit50_nside512_reso12-25_seed'
+        mid_name: 'ScaleMap_f'
+        end_name: 'p0.fits'
 
+
+#    nparams: 8 # + 1 if cross, + 4 if moments
