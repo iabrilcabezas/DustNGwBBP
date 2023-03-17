@@ -14,7 +14,7 @@ from dustngwbbp.compute_cl import import_bandpasses
 from dustngwbbp.compute_couplingmatrix import compute_couplingmatrix
 from dustngwbbp.compute_cov import get_cov_fromeq
 from utils.sed import dl_plaw, get_band_names, get_convolved_seds
-from utils.binning import rebin, cut_array
+from utils.binning import rebin, cut_array, bin_covs
 from utils.noise_calc import get_fsky
 from utils.namaster import binning_bbpower, get_mask
 from utils.params import POLARIZATION_cov, NAME_RUN, PATH_DICT, NAME_COMP
@@ -218,17 +218,14 @@ def compute_cov_fromsims(scale = 'small', bin_type = 'bin'):
     assert scale == 'small', 'only small sim has true covariance'
 
     cl_small = fits.open(DF_OUTPUT_PATH +\
-                         f'cl_BB_{DF_NAME_SIM}_nobin_{scale}_cal.fits')[0].data
+                         f'cl_BB_{DF_NAME_SIM}_{bin_type}_{scale}_cal.fits')[0].data
 
     # compute covariance
     cov_cl_sims = np.cov(cl_small, rowvar = False)
 
-    if bin_type == 'bin':
-        cov_cl_sims = rebin(cut_array(cov_cl_sims, \
-                                      np.arange(3 * NSIDE), LMIN, LMAX), [NBANDS, NBANDS])
-
     # obtain cov at all frequencies (assumes no decorrelation)
-    cov_dustfil_scale_full = np.zeros((ncombs, NBANDS, ncombs, NBANDS )) + np.nan
+    nel = cov_cl_sims.shape[0]
+    cov_dustfil_scale_full = np.zeros((ncombs, nel, ncombs, nel )) + np.nan
 
     # populate covariance
     for i_tr, (i_tr1,i_tr2) in enumerate(zip(indices_tr[0], indices_tr[1])):
@@ -273,20 +270,15 @@ def compute_tildecov(scale, bin_type):
     hdu_wt_nobin.writeto(DF_OUTPUT_PATH + DF_NAME_RUN +\
                          f'_d00_Cov_nobin_dft{scale[0]}.fits', overwrite = True)
 
-    cov_tilde_bin = np.zeros([ncombs, NBANDS, ncombs, NBANDS])
-
-    for i_tr in range(ncombs):
-        for j_tr in range(ncombs):
-            cov_tilde_bin[i_tr,:,j_tr,:] = rebin(cut_array(cov_tilde[i_tr,:,j_tr,:],\
-                                    np.arange(3 * NSIDE), LMIN, LMAX), [NBANDS, NBANDS])
-
+    # save also binned results:
+    cov_tilde_bin = bin_covs(cov_tilde)
     # save to fits file
     hdu_wt = fits.PrimaryHDU(cov_tilde_bin)
     hdu_wt.writeto(DF_OUTPUT_PATH + DF_NAME_RUN + \
                    f'_d00_Cov_bin_dft{scale[0]}.fits', overwrite = True)
 
 
-def merge_cov(method):
+def merge_cov(type_cov, bin_type = 'bin'):
 
     '''
     Merges covariance from large-scale modulating template (wt) and DustFil. Only dust component.
@@ -295,69 +287,67 @@ def merge_cov(method):
     # David: take DF sims without large scale template. add correction (Cov(tilde)) for large scales
     '''
 
-    if method == 'blake':
+    if type_cov == 'dfwtm':
 
-        dustwt_nobin = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_RUN, 'd00', 'Cov']) +\
-                                '_nobin_wt.fits')[0].data
+        dustwt = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_RUN, 'd00', 'Cov']) +\
+                                f'_{bin_type}_wt.fits')[0].data
 
-        dustwt_bin = np.zeros([ncombs, NBANDS, ncombs, NBANDS])
+        dust_df = fits.open(DF_OUTPUT_PATH + DF_NAME_RUN + f'_d00_Cov_{bin_type}_df00.fits')[0].data
 
-        for i_tr in range(ncombs):
-            for j_tr in range(ncombs):
-                dustwt_bin[i_tr,:, j_tr,:] = rebin(cut_array(dustwt_nobin[i_tr,:, j_tr,:], \
-                                                np.arange(3 * NSIDE), LMIN, LMAX), [NBANDS, NBANDS])
+        merged_cov = np.where(np.abs(dust_df) >= dustwt, dust_df, dustwt)
 
-        dust_dustfil = fits.open(DF_OUTPUT_PATH + DF_NAME_RUN + '_d00_Cov_bin_df00.fits')[0].data
+    elif type_cov == 'dfwt':
 
-        merged_cov = np.where(np.abs(dust_dustfil) >= dustwt_bin, dust_dustfil, dustwt_bin)
-
-    elif method == 'david':
-
-        cov_s  = fits.open(DF_OUTPUT_PATH + DF_NAME_RUN + '_d00_Cov_bin_df00.fits')[0].data
-        covt_s = fits.open(DF_OUTPUT_PATH + DF_NAME_RUN + '_d00_Cov_bin_dfts.fits')[0].data
-        covt_a = fits.open(DF_OUTPUT_PATH + DF_NAME_RUN + '_d00_Cov_bin_dfta.fits')[0].data
+        cov_s  = fits.open(DF_OUTPUT_PATH + DF_NAME_RUN + f'_d00_Cov_{bin_type}_df00.fits')[0].data
+        covt_s = fits.open(DF_OUTPUT_PATH + DF_NAME_RUN + f'_d00_Cov_{bin_type}_dfts.fits')[0].data
+        covt_a = fits.open(DF_OUTPUT_PATH + DF_NAME_RUN + f'_d00_Cov_{bin_type}_dfta.fits')[0].data
 
         merged_cov = np.add(np.subtract(covt_a, covt_s), cov_s)
 
+    else:
+        print('unresolved type_cov, check naming')
+        return None
+
     # save to fits file
     hducov = fits.PrimaryHDU(merged_cov)
-    name_tosave = '_d00_Cov_bin_dfwt'
-    if method == 'blake':
-        name_tosave += 'm'
-    hducov.writeto(DF_OUTPUT_PATH + DF_NAME_RUN + name_tosave + '.fits', overwrite = True)
 
-    return None
+    hducov.writeto(DF_OUTPUT_PATH + DF_NAME_RUN + f'_d00_Cov_{bin_type}_{type_cov}.fits', overwrite = True)
 
-def compute_full_cov(type_dustcov):
+    if bin_type == 'nobin':
+
+        bin_merged_cov = bin_covs(merged_cov)
+        hducov_bin = fits.PrimaryHDU(bin_merged_cov)
+        hducov_bin.writeto(DF_OUTPUT_PATH + DF_NAME_RUN + f'_d00_Cov_bin_{type_cov}.fits', overwrite = True)
+
+
+def compute_full_cov(type_dustcov, bin_type = 'bin'):
 
     '''
     Merges dust covariance with covariance from other components
     '''
 
-    cov_dustall = fits.open(DF_OUTPUT_PATH + DF_NAME_RUN + '_d00_Cov_bin_' +\
+    cov_dustall = fits.open(DF_OUTPUT_PATH + DF_NAME_RUN + f'_d00_Cov_{bin_type}_' +\
                             f'{type_dustcov}' + '.fits')[0].data
 
     cov_allw    = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_RUN, NAME_COMP, 'Cov']) + \
-                            '_nobin_w.fits')[0].data
+                            f'_{bin_type}_w.fits')[0].data
     # read in precomputed gaussian cov
     cov_dustw   = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_RUN, 'd00', 'Cov']) +\
-                            '_nobin_w.fits')[0].data
-
-    cov_allw_bin    = np.zeros([ncombs, NBANDS, ncombs, NBANDS])
-    cov_dustw_bin   = np.zeros([ncombs, NBANDS, ncombs, NBANDS])
-    for i_tr in range(ncombs):
-        for j_tr in range(ncombs):
-            cov_allw_bin[i_tr,:, j_tr,:]  = rebin(cut_array(cov_allw[i_tr,:, j_tr,:], \
-                                            np.arange(3 * NSIDE), LMIN, LMAX), [NBANDS, NBANDS])
-            cov_dustw_bin[i_tr,:, j_tr,:] = rebin(cut_array(cov_dustw[i_tr,:, j_tr,:], \
-                                            np.arange(3 * NSIDE), LMIN, LMAX), [NBANDS, NBANDS])
-
+                            f'_{bin_type}_w.fits')[0].data
 
     # Cov = Cov(all, gaussian) + [ Cov(dust, non gaussian) - Cov(dust, gaussian) ]
-    total_cov = np.add(cov_allw_bin, np.subtract(cov_dustall, cov_dustw_bin))
+    total_cov = np.add(cov_allw, np.subtract(cov_dustall, cov_dustw))
+
     # save to fits file
     assert NAME_COMP == 'dcs', 'you are computing a full cov with nothing but dust'
     hdu_cov = fits.PrimaryHDU(total_cov)
     hdu_cov.writeto(PATH_DICT['output_path'] + \
-                    '_'.join([ NAME_RUN, NAME_COMP, 'Cov_bin', type_dustcov]) + '.fits',\
+                    '_'.join([ NAME_RUN, NAME_COMP, f'Cov_{bin_type}', type_dustcov]) + '.fits',\
+                    overwrite = True)
+
+    if bin_type == 'nobin':
+        bin_total_cov = bin_covs(total_cov)
+        hducov_bin = fits.PrimaryHDU(bin_total_cov)
+        hducov_bin.writeto(PATH_DICT['output_path'] + \
+                           '_'.join([ NAME_RUN, NAME_COMP, 'Cov_bin', type_dustcov]) + '.fits',\
                     overwrite = True)
