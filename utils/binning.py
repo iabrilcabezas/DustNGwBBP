@@ -4,6 +4,17 @@ binning
 '''
 
 import numpy as np
+from utils.params import POLARIZATION_cov, NSIDE, LMIN, DELL, NBANDS
+from utils.sed import get_band_names
+from utils.bandpowers import get_ell_arrays
+
+LMAX, LARR_ALL, LBANDS, LEFF = get_ell_arrays(LMIN, DELL, NBANDS)
+band_names = get_band_names()
+nfreqs = len(band_names)
+nmodes = len(POLARIZATION_cov)
+nmaps=nmodes*nfreqs
+indices_tr=np.triu_indices(nmaps)
+ncombs = len(indices_tr[0])
 
 # Only work with 1D and 2D arrays
 ARR_TYPE = [1,2]
@@ -92,3 +103,29 @@ def rebin(array, new_shape):
         return array.reshape(shape).mean(-1).mean(1)
 
     return None
+
+def bin_covs(matrix):
+
+    '''
+    Bins unbinned covariance matrix according to NBANDS, LMIN AND LMAX range
+
+    * Parameters*
+
+    matrix: np.array()
+        cov matrix to be binned
+
+    * Returns *
+    np.array()
+    
+    '''
+    assert matrix.shape == (ncombs, 3 * NSIDE, ncombs, 3* NSIDE),'is this your unbinned cov matrix?'
+
+    # save binned:
+    cov_bin = np.zeros([ncombs, NBANDS, ncombs, NBANDS])
+    for i_tr in range(ncombs):
+        for j_tr in range(ncombs):
+            cov_bin[i_tr,:, j_tr,:]  = rebin(cut_array(matrix[i_tr,:, j_tr,:], \
+                                                np.arange(3 * NSIDE), LMIN, LMAX), \
+                                                [NBANDS, NBANDS])
+
+    return cov_bin
