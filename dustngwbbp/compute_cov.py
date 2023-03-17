@@ -13,12 +13,13 @@ from utils.params import name_couplingmatrix_w, name_couplingmatrix_wt
 from utils.sed import get_band_names
 from utils.bandpowers import get_ell_arrays
 from utils.noise_calc import get_fsky
+from utils.binning import bin_covs
 
 band_names = get_band_names()
 nfreqs = len(band_names)
 nmodes = len(POLARIZATION_cov)
 
-lmax, _, _, _ = get_ell_arrays(LMIN, DELL, NBANDS)
+LMAX, _, _, _ = get_ell_arrays(LMIN, DELL, NBANDS)
 
 def get_cov_fromeq(ell_array, cell_array, mcm, corr_factor):
 
@@ -191,19 +192,31 @@ def compute_cov(ctype, w2_factor):
             assert np.all(np.isclose(cov_wt[i_tr,:,j_tr,:], cov_wt[i_tr,:,j_tr,:].T)) ,\
                     f'({i_tr},{j_tr}) wt cov is not diagonal'
 
+
     # save to fits file
     hdu_w = fits.PrimaryHDU(cov_w)
-    hdu_wt = fits.PrimaryHDU(cov_wt)
-
     hdu_w.writeto(PATH_DICT['output_path'] + '_'.join([NAME_RUN, ctype, 'Cov']) + \
                     '_nobin_w.fits', overwrite = True)
+    # save binned:
+    cov_w_bin = bin_covs(cov_w)
+    hdu_w_bin = fits.PrimaryHDU(cov_w_bin)
+    hdu_w_bin.writeto(PATH_DICT['output_path'] + '_'.join([NAME_RUN, ctype, 'Cov']) + \
+                    '_bin_w.fits', overwrite = True)
+
     if ctype == 'd00':
+
+        # save binned:
+        cov_wt_bin = bin_covs(cov_wt)
+        hdu_wt = fits.PrimaryHDU(cov_wt)
+        hdu_wt_bin = fits.PrimaryHDU(cov_wt_bin)
+
         hdu_wt.writeto(PATH_DICT['output_path'] + '_'.join([NAME_RUN, ctype, 'Cov']) +\
                     '_nobin_wt.fits', overwrite = True)
 
+        hdu_wt_bin.writeto(PATH_DICT['output_path'] + '_'.join([NAME_RUN, ctype, 'Cov']) +\
+                    '_bin_wt.fits', overwrite = True)
 
-
-def get_effective_cov():
+def get_effective_cov(bin_type):
 
     '''
     gets final covariance as
@@ -217,24 +230,26 @@ def get_effective_cov():
 
     # read-in precomputed covariances
     hdu_dustw = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_RUN, 'd00', 'Cov']) +\
-                            '_nobin_w.fits')
+                            f'_{bin_type}_w.fits')
     hdu_dustwt = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_RUN, 'd00', 'Cov']) +\
-                            '_nobin_wt.fits')
+                            f'_{bin_type}_wt.fits')
     hdu_all = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_RUN, NAME_COMP, 'Cov']) + \
-                            '_nobin_w.fits')
+                            f'_{bin_type}_w.fits')
 
     cov_dustw = hdu_dustw[0].data
     cov_dustwt = hdu_dustwt[0].data
     cov_allw = hdu_all[0].data
 
-    assert cov_dustw.shape[1] == len(larr_all), 'error in ell array definition'
+    if bin_type == 'nobin':
+        assert cov_dustw.shape[1] == len(larr_all), 'error in ell array definition'
 
     # Cov = Cov(all, gaussian) + [ Cov(dust, non gaussian) - Cov(dust, gaussian) ]
     total_cov= np.add(cov_allw, np.subtract(cov_dustwt, cov_dustw))
 
     # save to fits file
     hdu_cov = fits.PrimaryHDU(total_cov)
-    hdu_cov.writeto(PATH_DICT['output_path'] + '_'.join([NAME_RUN, NAME_COMP, 'Cov']) + '_nobin_wt.fits', overwrite = True)
+    hdu_cov.writeto(PATH_DICT['output_path'] + '_'.join([NAME_RUN, NAME_COMP, 'Cov']) + \
+                    f'_{bin_type}_wt.fits', overwrite = True)
 
 def get_crazy_cov():#covtype):
 
