@@ -9,5 +9,5 @@ ranges:
 #  bands: 
 
 bands_iter:
-  so: ['all', ['LF1', 'LF2'], ['MF1', 'MF2'], ['UHF1', 'UHF2'], ['LF1', 'MF1', 'UHF2'], ['MF1','UHF2']]
+  so: ['all', ['LF1','LF2','MF1','MF2','UHF2']] # ['LF1', 'LF2'], ['MF1', 'MF2'], ['UHF1', 'UHF2'], ['LF1', 'MF1', 'UHF2'], ['MF1','UHF2']]
   other: ['all']
