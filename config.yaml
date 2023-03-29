@@ -6,7 +6,7 @@ global:
     experiment: 'so'
     nside: 256
     cov_correction: 'w2' # 'w2' # w2 factor, fsky, none (null)
-    template: 'd10' # 'p353'
+    template: 'p353' # 'p353'
 
 bandpowers:
     lmin: 30
@@ -16,7 +16,7 @@ bandpowers:
 mask:
     mask_type: 'soflat'
     apo_deg: 5.0
-    smooth_deg: 1.
+    smooth_deg: 0.4
     dell_nmt: 10
 
 polarization:
@@ -27,7 +27,7 @@ components:
     sync: True
 
 paths:
-    output_path: '/global/cfs/cdirs/act/data/iabril/BBPower/230315/'
+    output_path: '/global/cfs/cdirs/act/data/iabril/BBPower/230324/'
     bicep_BK15: '/global/cfs/cdirs/act/data/iabril/BICEP/'
     bbpipe_path: '/global/cfs/cdirs/act/software/iabril/condaenvs/github_reps/BBPower/'
     planck_path_cori: '/global/cscratch1/sd/iabril/PlanckData/'
@@ -72,7 +72,7 @@ dust_filaments:
     paths:
         base: '/global/cfs/cdirs/act/data/iabril/DustFilaments/'
         sim:  'sims_230306/'
-        output: 'analysis2/'
+        output: 'analysis_230324/'
         base_name: 'DustFilaments_TQU_180p5M_400pc_LR71_GNILC-unires_ell-limit50_nside512_reso12-25_seed'
         mid_name: 'ScaleMap_f'
         end_name: 'p0.fits'

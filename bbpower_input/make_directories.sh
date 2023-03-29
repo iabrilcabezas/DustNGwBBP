@@ -1,6 +1,6 @@
 #!/bin/bash
 
-name_run=230306/
+name_run=230324/
 base_folder=/global/cfs/cdirs/act/data/iabril/BBPower/
 
 cd ${base_folder}
@@ -12,3 +12,5 @@ mkdir temp
 mkdir results_posteriors
 mkdir results_CL
 mkdir results_pte
+cd results_pte
+mkdir Figures

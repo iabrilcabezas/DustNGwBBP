@@ -1,6 +1,6 @@
 #!/bin/bash
 
-base_folder=/global/cfs/cdirs/act/data/iabril/BBPower/230317
+base_folder=/global/cfs/cdirs/act/data/iabril/BBPower/230324
 #input_folder=/global/common/software/act/iabril/python/DustNGwBBP/bbpower_input
 
 machine=perl
@@ -16,13 +16,13 @@ weight=Cl
 
 mtype=soflat
 apodeg=5.0
-smooth=1.0
-templ=d10
+smooth=0.4
+templ=p353
 # w_type=dfwtm # 00 #w #wt
 ctype=dcs
 cross=0
 moments=0
-decor=0
+decor=D
 
 bands=all #MF1_UHF2 #
 lminbb=30
@@ -32,7 +32,7 @@ all=_tot.fits
 noise=_noi.fits 
 fid=_fid.fits
 
-wtypes='w wt df00 dfwt dfwtm'
+wtypes='w wt dfwt'
 ctypes='dc0 dcs'
 mmts='0 M'
 crosses='0 C'
@@ -47,8 +47,8 @@ smoothes=( "10.0" "20.0" "40.0")
 # do
 #for moments in $mmts
 #do
-for decor in $decorrs
-do
+#for decor in $decorrs
+#do
 for w_type in $wtypes
 do
 
@@ -65,7 +65,7 @@ do
     # Run pipeline
     python -m bbpower BBCompSep --cells_coadded=$base_folder/${name_cls}${all}  --cells_noise=$base_folder/${name_cls}${noise} --cells_fiducial=$base_folder/${name_cls}${fid}    --config=$base_folder/config_files/${name_c}.yml      --param_chains=$base_folder/chains/${name_c}.npz       --config_copy=$base_folder/temp/config_copy.yml
 done
-done
+#done
 #done
 #done
 #done
