@@ -399,8 +399,7 @@ NAME_RUN  = get_namerun(namerun_dict) + '_' + NAME_COMP
 name_couplingmatrix_w = PATH_DICT['output_path'] + NAME_COUPLINGM + '_couplingM_w' # .txt'
 name_couplingmatrix_wt = PATH_DICT['output_path'] + NAME_COUPLINGM + '_couplingM_wt' #.txt'
 
-DF_NAME_RUN = f'{int(nu0_dust)}_{MTYPE}_{NSIDE}_{abs(alpha_dust_BB)}_{A_dust_BB}_{LMIN}_{NBANDS}_{DELL}'
-DF_NAME_SIM = f'{int(nu0_dust)}_{MTYPE}_{NSIDE}_{LMIN}_{NBANDS}_{DELL}'
+DF_NAME = NAME_RUN + f'{int(nu0_dust)}_{abs(alpha_dust_BB)}_{A_dust_BB}'
 
 print(NAME_RUN)
 print(DF_OUTPUT_PATH)
