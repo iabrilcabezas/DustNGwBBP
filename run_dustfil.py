@@ -11,28 +11,26 @@ from dustngwbbp.compute_cl import compute_cl
 from utils_bbpw.bbpw_script import write_config_yml_script
 from utils_bbpw.params import dict_ells_bbpw, dict_params_bbpw
 
-TYPE_DCOV = 'dfwtm'
+compute_cell_nobin_dustfil(DF_NSIMS, NSIDE)
+calibrate_cells('nobin')
 
-# # compute_cell_bin_dustfil(DF_NSIMS, NSIDE)
-# compute_cell_nobin_dustfil(DF_NSIMS, NSIDE)
-# calibrate_cells('nobin')
+compute_cov_fromsims('small', 'nobin')
 
-# compute_cov_fromsims('small', 'nobin')
+compute_tildecov('small', 'nobin')
+compute_tildecov('all', 'nobin')
 
-# compute_tildecov('small', 'nobin')
-# compute_tildecov('all', 'nobin')
+for TYPE_DCOV in ['df00', 'dfwt', 'dfwtm']:
 
-if TYPE_DCOV != 'df00':
+    if TYPE_DCOV != 'df00':
+        merge_cov(TYPE_DCOV, 'nobin')
 
-    merge_cov(TYPE_DCOV, 'nobin')
+    compute_full_cov(TYPE_DCOV, 'nobin')
 
-compute_full_cov(TYPE_DCOV, 'nobin')
+    compute_cl('dcs',TYPE_DCOV)
 
-compute_cl('dcs',TYPE_DCOV)
+    dict_ells_bbpw['bands'] = 'all'
 
-dict_ells_bbpw['bands'] = 'all'
-
-for mom, decs in zip([False, False, True],[False, True, False]):
-    write_config_yml_script(TYPE_DCOV, params_bbpw = dict_params_bbpw,
-                            dict_compsep= dict_ells_bbpw,
-                            cros = mom, mmt = mom, dec = decs)
+    for mom, decs in zip([False, False, True],[False, True, False]):
+        write_config_yml_script(TYPE_DCOV, params_bbpw = dict_params_bbpw,
+                                dict_compsep= dict_ells_bbpw,
+                                cros = mom, mmt = mom, dec = decs)

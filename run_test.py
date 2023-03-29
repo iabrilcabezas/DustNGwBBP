@@ -20,8 +20,6 @@ compute_cov(NAME_COMP, w2_mean)
 get_effective_cov('nobin')
 get_effective_cov('bin')
 
-# get_crazy_cov('offset')
-
 compute_cl(NAME_COMP,'w')
 compute_cl(NAME_COMP,'wt')
 
