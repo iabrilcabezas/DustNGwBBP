@@ -246,7 +246,7 @@ def get_template_wmask(nside, ttype, mtype, **kwargs):
     if ttype == 'p353':
         # map from which to create anisotropic correlated template
         templ = hp.read_map(PATH_DICT['planck_data']+"HFI_SkyMap_353-psb-field-IQU_2048_R3.00_full.fits")
-    if ttype == 'd10':
+    elif ttype == 'd10':
         templ_rj = hp.read_map(PATH_DICT['template_path'] + 'dust_pysm3_small_scales.fits', field = 0)
         templ = templ_rj / fcmb(nu0_dust) # RJ to CMB units
     else:
