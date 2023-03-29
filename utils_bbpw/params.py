@@ -4,13 +4,17 @@ params
 
 '''
 import yaml
-from utils.params import EXPERIMENT
+from utils.params import EXPERIMENT, LMIN, NBANDS, DELL
 from utils.sed import get_band_names
+from utils.bandpowers import get_ell_arrays
 
 band_names = get_band_names()
 
 SO_bands_equivalent = {'LF1': 'band1', 'LF2':'band2', 'MF1':'band3',
                        'MF2': 'band4', 'UHF1': 'band5', 'UHF2':'band6'}
+
+LMAX = get_ell_arrays(LMIN, DELL, NBANDS)[0]
+
 
 def get_dictwnamecompsep(dict_bbcomp):
 
@@ -139,3 +143,9 @@ with open('config_bbpw.yaml', 'r', encoding = 'utf-8') as config_file:
 dict_params_bbpw = config_bbpw.global_emcee.__dict__
 dict_ells_bbpw  = config_bbpw.ranges.__dict__
 niterbands = get_niterbands()
+
+lmax = config_bbpw.ranges.lmax
+lmin = config_bbpw.ranges.lmin
+
+assert (lmax == LMAX) & (lmin == LMIN), 'bbpw will use different ell range from binned cov'
+
