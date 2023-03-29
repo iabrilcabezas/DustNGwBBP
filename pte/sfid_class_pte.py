@@ -48,19 +48,6 @@ class SfClass():
         self.s_fg = sacc.Sacc.load_fits(name_sf)
         self.s_fng = sacc.Sacc.load_fits(name_sf)
 
-        # populate with gaussian and NG covariance
-        if type_cov == 'wt':
-            cov_ng_full = fits.open(PATH_DICT['output_path'] + NAME_RUN + '_' + \
-                                    '_'.join([NAME_COMP, 'Cov', 'nobin']) + '_wt.fits')[0].data
-
-        elif type_cov[:2] == 'df':
-            # read-in cov
-            cov_ng = fits.open(PATH_DICT['output_path'] + NAME_RUN +  '_' + \
-                               '_'.join([NAME_COMP, 'Cov', 'bin']) + f'_{type_cov}.fits')[0].data
-
-        cov_g_full  = fits.open(PATH_DICT['output_path'] + NAME_RUN + '_' +\
-                            '_'.join([NAME_COMP, 'Cov', 'nobin']) + '_w.fits')[0].data
-
         # select polarization and ell range
         for obj in [self.s_f, self.s_fg, self.s_fng]:
             obj.remove_selection(ell__gt=lmax_bbp)
@@ -89,28 +76,16 @@ class SfClass():
         self.pol_order = dict(zip(self.pols, range(self.npol))) # arange polarization
 
         # no. of bandpowers after ell range selection
-        self.ell_b, _ = self.s_f.get_ell_cl('cl_' + 2 * self.pols[0].lower(), \
-                                            self.tr_names[0], self.tr_names[0])
+        self.ell_b = self.s_f.get_ell_cl('cl_' + 2 * self.pols[0].lower(), \
+                                            self.tr_names[0], self.tr_names[0])[0]
         self.n_bpws = len(self.ell_b)
 
-        # bin full covariance matrix in terms of ell range [user] defined
-        # cross is still full (all bands)
-        cov_g = np.zeros([ncross, self.n_bpws, ncross, self.n_bpws])
+        # populate with gaussian and NG covariance
+        cov_ng = fits.open(PATH_DICT['output_path'] + NAME_RUN + '_' + \
+                            '_'.join([NAME_COMP,'Cov', 'bin']) + f'_{type_cov}.fits')[0].data
+        cov_g  = fits.open(PATH_DICT['output_path'] + NAME_RUN + '_' +\
+                            '_'.join([NAME_COMP, 'Cov', 'bin']) + '_w.fits')[0].data
 
-        if type_cov == 'wt':
-            cov_ng =  np.zeros([ncross, self.n_bpws, ncross, self.n_bpws])
-
-        # cut and bin COV MW matrix:
-        for i_tr in range(ncross):
-            for j_tr in range(ncross):
-
-                cov_g[i_tr,:, j_tr,:] = rebin(cut_array(cov_g_full[i_tr,:, j_tr,:], \
-                                                    np.arange(3 * NSIDE), lmin_bbp, lmax_bbp), \
-                                                    [self.n_bpws, self.n_bpws])
-                if type_cov == 'wt':
-                    cov_ng[i_tr,:, j_tr,:] = rebin(cut_array(cov_ng_full[i_tr,:, j_tr,:], \
-                                                    np.arange(3 * NSIDE), lmin_bbp, lmax_bbp), \
-                                                    [self.n_bpws,self.n_bpws])
 
         cov_g = cov_g.reshape([ncross * self.n_bpws, ncross * self.n_bpws ])
         cov_ng = cov_ng.reshape([ncross* self.n_bpws,ncross * self.n_bpws ])
@@ -197,7 +172,7 @@ class SfClass():
             if len(ind_a) != self.n_bpws:
                 raise ValueError("All power spectra need to be "
                                  "sampled at the same ells")
-            _, v2d_fid[:, ind_vec] = self.s_f.get_ell_cl(cl_typ, t1, t2)
+            v2d_fid[:, ind_vec] = self.s_f.get_ell_cl(cl_typ, t1, t2)[1]
 
             itr2 = self._freq_pol_iterator()
             for b1b, b2b, p1b, p2b, m1b, m2b, ind_vecb in itr2:
