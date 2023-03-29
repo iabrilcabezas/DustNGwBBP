@@ -20,7 +20,7 @@ from utils.namaster import binning_bbpower, get_mask
 from utils.params import POLARIZATION_cov, NAME_RUN, PATH_DICT, NAME_COMP
 from utils.params import name_couplingmatrix_wt, name_couplingmatrix_w, COV_CORR, config
 from utils.params import DF_BASE_PATH, DF_OUTPUT_PATH, DF_END_NAME_A, DF_END_NAME_S
-from utils.params import DF_NAME_RUN, DF_NAME_SIM
+from utils.params import DF_NAME
 from utils.params import nu0_dust as DF_FREQ
 from utils.params import NSIDE, MTYPE
 from utils.params import alpha_dust_BB as DF_ALPHA
@@ -120,10 +120,10 @@ def compute_cell_bin_dustfil(nseeds, nside):
 
     # save to fits file
     hdu_cl_s= fits.PrimaryHDU(cl_store_small)
-    hdu_cl_s.writeto(DF_OUTPUT_PATH + f'cl_BB_{DF_NAME_SIM}_bin_small.fits', overwrite = True)
+    hdu_cl_s.writeto(DF_OUTPUT_PATH + f'cl_BB_{DF_NAME}_bin_small.fits', overwrite = True)
 
     hdu_cl_a = fits.PrimaryHDU(cl_store_all)
-    hdu_cl_a.writeto(DF_OUTPUT_PATH + f'cl_BB_{DF_NAME_SIM}_bin_all.fits', overwrite = True)
+    hdu_cl_a.writeto(DF_OUTPUT_PATH + f'cl_BB_{DF_NAME}_bin_all.fits', overwrite = True)
 
 def compute_cell_nobin_dustfil(nseeds, nside):
 
@@ -158,10 +158,10 @@ def compute_cell_nobin_dustfil(nseeds, nside):
 
     # save to fits file
     hdu_cl_s= fits.PrimaryHDU(cl_store_small)
-    hdu_cl_s.writeto(DF_OUTPUT_PATH + f'cl_BB_{DF_NAME_SIM}_nobin_small.fits', overwrite = True)
+    hdu_cl_s.writeto(DF_OUTPUT_PATH + f'cl_BB_{DF_NAME}_nobin_small.fits', overwrite = True)
 
     hdu_cl_a = fits.PrimaryHDU(cl_store_all)
-    hdu_cl_a.writeto(DF_OUTPUT_PATH + f'cl_BB_{DF_NAME_SIM}_nobin_all.fits', overwrite = True)
+    hdu_cl_a.writeto(DF_OUTPUT_PATH + f'cl_BB_{DF_NAME}_nobin_all.fits', overwrite = True)
 
 
 def calibrate_cells(bin_type):
@@ -173,8 +173,8 @@ def calibrate_cells(bin_type):
     assert int(DF_FREQ) == 353, 'SED scaling =1 for 353GHz, use it!'
 
     # open previously computed Cell of maps
-    cl_all   = fits.open(DF_OUTPUT_PATH + f'cl_BB_{DF_NAME_SIM}_{bin_type}_all.fits')[0].data
-    cl_small = fits.open(DF_OUTPUT_PATH + f'cl_BB_{DF_NAME_SIM}_{bin_type}_small.fits')[0].data
+    cl_all   = fits.open(DF_OUTPUT_PATH + f'cl_BB_{DF_NAME}_{bin_type}_all.fits')[0].data
+    cl_small = fits.open(DF_OUTPUT_PATH + f'cl_BB_{DF_NAME}_{bin_type}_small.fits')[0].data
     # calculate <Cell> across sims
     mean_cell = np.mean(cl_all, axis  = 0)
 
@@ -203,11 +203,11 @@ def calibrate_cells(bin_type):
     # save to fits file
     hdu_cl_s= fits.PrimaryHDU(cl_small)
     hdu_cl_s.writeto(DF_OUTPUT_PATH + \
-                     f'cl_BB_{DF_NAME_SIM}_{bin_type}_small_cal.fits', overwrite = True)
+                     f'cl_BB_{DF_NAME}_{bin_type}_small_cal.fits', overwrite = True)
 
     hdu_cl_a = fits.PrimaryHDU(cl_all)
     hdu_cl_a.writeto(DF_OUTPUT_PATH + \
-                     f'cl_BB_{DF_NAME_SIM}_{bin_type}_all_cal.fits', overwrite = True)
+                     f'cl_BB_{DF_NAME}_{bin_type}_all_cal.fits', overwrite = True)
 
 def compute_cov_fromsims(scale = 'small', bin_type = 'bin'):
 
@@ -218,7 +218,7 @@ def compute_cov_fromsims(scale = 'small', bin_type = 'bin'):
     assert scale == 'small', 'only small sim has true covariance'
 
     cl_small = fits.open(DF_OUTPUT_PATH +\
-                         f'cl_BB_{DF_NAME_SIM}_{bin_type}_{scale}_cal.fits')[0].data
+                         f'cl_BB_{DF_NAME}_{bin_type}_{scale}_cal.fits')[0].data
 
     # compute covariance
     cov_cl_sims = np.cov(cl_small, rowvar = False)
@@ -235,7 +235,7 @@ def compute_cov_fromsims(scale = 'small', bin_type = 'bin'):
             cov_dustfil_scale_full[i_tr,:,j_tr, :] = cov_cl_sims * sed_scaling
     # save to fits file
     hdu_cov = fits.PrimaryHDU(cov_dustfil_scale_full)
-    hdu_cov.writeto(DF_OUTPUT_PATH + DF_NAME_RUN +\
+    hdu_cov.writeto(DF_OUTPUT_PATH + DF_NAME +\
                     f'_d00_Cov_{bin_type}_df00.fits', overwrite = True)
 
 def compute_tildecov(scale, bin_type):
@@ -246,7 +246,7 @@ def compute_tildecov(scale, bin_type):
     assert bin_type == 'nobin', 'correct expression is with binning after computing cov'
 
     cl_f0_sims = fits.open(DF_OUTPUT_PATH + \
-                           f'cl_BB_{DF_NAME_SIM}_{bin_type}_{scale}_cal.fits')[0].data
+                           f'cl_BB_{DF_NAME}_{bin_type}_{scale}_cal.fits')[0].data
     cl_f0      = np.mean(cl_f0_sims, axis  = 0) # mean across sims
 
     if scale == 'small':
@@ -267,14 +267,14 @@ def compute_tildecov(scale, bin_type):
     assert COV_CORR == 'w2', 'only implemented for w2 correction'
     cov_tilde = get_cov_fromeq(ell_array, c_ell_freqs, mcm, w2_mean**2)
     hdu_wt_nobin = fits.PrimaryHDU(cov_tilde)
-    hdu_wt_nobin.writeto(DF_OUTPUT_PATH + DF_NAME_RUN +\
+    hdu_wt_nobin.writeto(DF_OUTPUT_PATH + DF_NAME +\
                          f'_d00_Cov_nobin_dft{scale[0]}.fits', overwrite = True)
 
     # save also binned results:
     cov_tilde_bin = bin_covs(cov_tilde)
     # save to fits file
     hdu_wt = fits.PrimaryHDU(cov_tilde_bin)
-    hdu_wt.writeto(DF_OUTPUT_PATH + DF_NAME_RUN + \
+    hdu_wt.writeto(DF_OUTPUT_PATH + DF_NAME + \
                    f'_d00_Cov_bin_dft{scale[0]}.fits', overwrite = True)
 
 
@@ -292,15 +292,15 @@ def merge_cov(type_cov, bin_type = 'bin'):
         dustwt = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_RUN, 'd00', 'Cov']) +\
                                 f'_{bin_type}_wt.fits')[0].data
 
-        dust_df = fits.open(DF_OUTPUT_PATH + DF_NAME_RUN + f'_d00_Cov_{bin_type}_df00.fits')[0].data
+        dust_df = fits.open(DF_OUTPUT_PATH + DF_NAME + f'_d00_Cov_{bin_type}_df00.fits')[0].data
 
         merged_cov = np.where(np.abs(dust_df) >= dustwt, dust_df, dustwt)
 
     elif type_cov == 'dfwt':
 
-        cov_s  = fits.open(DF_OUTPUT_PATH + DF_NAME_RUN + f'_d00_Cov_{bin_type}_df00.fits')[0].data
-        covt_s = fits.open(DF_OUTPUT_PATH + DF_NAME_RUN + f'_d00_Cov_{bin_type}_dfts.fits')[0].data
-        covt_a = fits.open(DF_OUTPUT_PATH + DF_NAME_RUN + f'_d00_Cov_{bin_type}_dfta.fits')[0].data
+        cov_s  = fits.open(DF_OUTPUT_PATH + DF_NAME + f'_d00_Cov_{bin_type}_df00.fits')[0].data
+        covt_s = fits.open(DF_OUTPUT_PATH + DF_NAME + f'_d00_Cov_{bin_type}_dfts.fits')[0].data
+        covt_a = fits.open(DF_OUTPUT_PATH + DF_NAME + f'_d00_Cov_{bin_type}_dfta.fits')[0].data
 
         merged_cov = np.add(np.subtract(covt_a, covt_s), cov_s)
 
@@ -311,13 +311,13 @@ def merge_cov(type_cov, bin_type = 'bin'):
     # save to fits file
     hducov = fits.PrimaryHDU(merged_cov)
 
-    hducov.writeto(DF_OUTPUT_PATH + DF_NAME_RUN + f'_d00_Cov_{bin_type}_{type_cov}.fits', overwrite = True)
+    hducov.writeto(DF_OUTPUT_PATH + DF_NAME + f'_d00_Cov_{bin_type}_{type_cov}.fits', overwrite = True)
 
     if bin_type == 'nobin':
 
         bin_merged_cov = bin_covs(merged_cov)
         hducov_bin = fits.PrimaryHDU(bin_merged_cov)
-        hducov_bin.writeto(DF_OUTPUT_PATH + DF_NAME_RUN + f'_d00_Cov_bin_{type_cov}.fits', overwrite = True)
+        hducov_bin.writeto(DF_OUTPUT_PATH + DF_NAME + f'_d00_Cov_bin_{type_cov}.fits', overwrite = True)
 
 
 def compute_full_cov(type_dustcov, bin_type = 'bin'):
@@ -326,7 +326,7 @@ def compute_full_cov(type_dustcov, bin_type = 'bin'):
     Merges dust covariance with covariance from other components
     '''
 
-    cov_dustall = fits.open(DF_OUTPUT_PATH + DF_NAME_RUN + f'_d00_Cov_{bin_type}_' +\
+    cov_dustall = fits.open(DF_OUTPUT_PATH + DF_NAME + f'_d00_Cov_{bin_type}_' +\
                             f'{type_dustcov}' + '.fits')[0].data
 
     cov_allw    = fits.open(PATH_DICT['output_path'] + '_'.join([NAME_RUN, NAME_COMP, 'Cov']) + \
