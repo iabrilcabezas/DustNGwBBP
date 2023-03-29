@@ -33,7 +33,7 @@ DICT_CMBMODEL = {'cmb_templates': [PATH_DICT['bbpipe_path'] + 'examples/data/cam
                 'params': {'r_tensor': ['r_tensor', 'tophat', [-0.1, 0.0, 0.1]],
                             'A_lens': ['A_lens', 'tophat', [0.0, 1.0, 2.0]]}}
 
-DICT_COMP1_DECORR = { 'decorr_amp_d' : ['decorr_amp', 'tophat', [0.9, 1.0, 1.1]],
+DICT_COMP1_DECORR = { 'decorr_amp_d' : ['decorr_amp', 'tophat', [0.7, 1.0, 1.3]],
                       'decorr_nu0_d' : ['decorr_nu0', 'fixed', [353.0]]}
 DICT_COMP2_DECORR = { 'decorr_amp_s' : ['decorr_amp', 'tophat', [0.9, 1.0, 1.1]],
                       'decorr_nu0_s' : ['decorr_nu0', 'fixed', [23.0]]}
