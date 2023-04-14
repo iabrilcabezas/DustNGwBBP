@@ -178,7 +178,7 @@ def Simons_Observatory_V3_SA_beams(ell):
     return [np.exp(-0.5*ell*(ell+1)*sig**2.) for sig in SA_beams]
 
 def Simons_Observatory_V3_SA_noise(sensitivity_mode,one_over_f_mode,SAT_yrs_LF,f_sky,ell_max,delta_ell,
-                                   include_kludge=True, include_beam=True):
+                                   include_kludge=True, include_beam=True, atm_noise = True):
     ## returns noise curves in polarization only, including the impact of the beam, for the SO small aperture telescopes
     ## noise curves are polarization only
     # sensitivity_mode
@@ -273,12 +273,22 @@ def Simons_Observatory_V3_SA_noise(sensitivity_mode,one_over_f_mode,SAT_yrs_LF,f
     ###   CALCULATE N(ell) for Polarization
     ## calculate the atmospheric contribution for P
     ## see Sec. 2.2 of the SO science goals paper
-    AN_P_27  = (ell / f_knee_pol_SA_27[one_over_f_mode] )**alpha_pol[0] + 1.  
-    AN_P_39  = (ell / f_knee_pol_SA_39[one_over_f_mode] )**alpha_pol[1] + 1. 
-    AN_P_93  = (ell / f_knee_pol_SA_93[one_over_f_mode] )**alpha_pol[2] + 1.   
-    AN_P_145 = (ell / f_knee_pol_SA_145[one_over_f_mode])**alpha_pol[3] + 1.   
-    AN_P_225 = (ell / f_knee_pol_SA_225[one_over_f_mode])**alpha_pol[4] + 1.   
-    AN_P_280 = (ell / f_knee_pol_SA_280[one_over_f_mode])**alpha_pol[5] + 1.  
+
+    AN_P_27  = 1.
+    AN_P_39  = 1.
+    AN_P_93  = 1.
+    AN_P_145 = 1.
+    AN_P_225 = 1.
+    AN_P_280 = 1.
+
+    if atm_noise:
+        # adds 1/f noise
+        AN_P_27  = (ell / f_knee_pol_SA_27[one_over_f_mode] )**alpha_pol[0] + 1.
+        AN_P_39  = (ell / f_knee_pol_SA_39[one_over_f_mode] )**alpha_pol[1] + 1.
+        AN_P_93  = (ell / f_knee_pol_SA_93[one_over_f_mode] )**alpha_pol[2] + 1.
+        AN_P_145 = (ell / f_knee_pol_SA_145[one_over_f_mode])**alpha_pol[3] + 1.
+        AN_P_225 = (ell / f_knee_pol_SA_225[one_over_f_mode])**alpha_pol[4] + 1.
+        AN_P_280 = (ell / f_knee_pol_SA_280[one_over_f_mode])**alpha_pol[5] + 1.
 
     ## calculate N(ell)
     N_ell_P_27   = (W_T_27  * np.sqrt(2))**2.* A_SR * AN_P_27
@@ -304,3 +314,5 @@ def Simons_Observatory_V3_SA_noise(sensitivity_mode,one_over_f_mode,SAT_yrs_LF,f
     
     ####################################################################
     return(ell,N_ell_P_SA,Map_white_noise_levels)
+
+

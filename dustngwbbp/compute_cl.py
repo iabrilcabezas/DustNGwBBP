@@ -206,7 +206,18 @@ def add_noise(lmax, bpw_freq_sig, fsky, do_bin, weight = 'Cl'):
         knee=1
         ylf=1
         nell=np.zeros([nfreqs,lmax+1])
-        _,nell[:,2:],_=nc.Simons_Observatory_V3_SA_noise(sens,knee,ylf,fsky,lmax+1,1)
+        _,nell[:,2:],_=nc.Simons_Observatory_V3_SA_noise(sens,knee,ylf,fsky,lmax+1,1, atm_noise = True)
+
+    if EXPERIMENT == 'lbrd':
+
+        ## litebird like noise. same white noise as SO, but no 1/f noise
+
+        # N_ell
+        sens=2
+        knee=1
+        ylf=1
+        nell=np.zeros([nfreqs,lmax+1])
+        _,nell[:,2:],_=nc.Simons_Observatory_V3_SA_noise(sens,knee,ylf,fsky,lmax+1,1, atm_noise = False)
 
     if EXPERIMENT in ['cmbs4', 'cmbs4d']:
 
@@ -215,7 +226,7 @@ def add_noise(lmax, bpw_freq_sig, fsky, do_bin, weight = 'Cl'):
         knee=1
         ylf=1
         nell=np.zeros([nfreqs,lmax+1])
-        _,nell[:,2:],_=nc.Simons_Observatory_V3_SA_noise(sens,knee,ylf,fsky,lmax+1,1)
+        _,nell[:,2:],_=nc.Simons_Observatory_V3_SA_noise(sens,knee,ylf,fsky,lmax+1,1, atm_noise = True)
         nell /= 5
 
     if do_bin:
