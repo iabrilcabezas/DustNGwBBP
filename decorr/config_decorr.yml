@@ -19,7 +19,7 @@ BBCompSep:
     #        likelihood computation.
     #  - 'predicted_spectra': will compute predicted C_ells and
     #        save to file.
-    sampler: 'single_point'
+    sampler: 'predicted_spectra'
     predict_at_minimum: False
     predict_to_sacc: True
     # If you chose emcee:
