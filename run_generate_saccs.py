@@ -49,25 +49,29 @@ for TYPE_DCOV in ['df00', 'dfwt', 'dfwtm']:
 
 for TYPE_DCOV in ['df00', 'dfwt', 'dfwtm']:
 
-    for biter in niterbands:
-        dict_ells_bbpw['bands'] = biter
-        # dict_ells_bbpw['bands'] = 'all'
+    #for biter in niterbands:
+        #dict_ells_bbpw['bands'] = biter
+    dict_ells_bbpw['bands'] = 'all'
+    write_config_yml_script(TYPE_DCOV, params_bbpw = dict_params_bbpw,
+                            dict_compsep= dict_ells_bbpw,
+                            cros = True, mmt = False, dec = False)
 
-        for mom, decs in zip([False, False, True],[False, True, False]):
-            write_config_yml_script(TYPE_DCOV, params_bbpw = dict_params_bbpw,
-                                    dict_compsep= dict_ells_bbpw,
-                                    cros = mom, mmt = mom, dec = decs)
 
-for biter in niterbands:
-    dict_ells_bbpw['bands'] = biter
+        # for mom, decs in zip([False, False, True],[False, True, False]):
+        #     write_config_yml_script(TYPE_DCOV, params_bbpw = dict_params_bbpw,
+        #                             dict_compsep= dict_ells_bbpw,
+        #                             cros = mom, mmt = mom, dec = decs)
+
+#for biter in niterbands:
+#    dict_ells_bbpw['bands'] = biter
     #dict_ells_bbpw['bands'] = 'all'
 
-    for template in ['w', 'wt']:
-        for decs in [True, False]:
-            write_config_yml_script(template, params_bbpw = dict_params_bbpw,
-                                    dict_compsep= dict_ells_bbpw,
-                                    cros = False, mmt = False, dec = decs) # dc0 or dcs, simple
-        if NAME_COMP == 'dcs':
-            write_config_yml_script(template, params_bbpw = dict_params_bbpw,
-                                    dict_compsep= dict_ells_bbpw,
-                                    cros = True, mmt = True, dec = False)
+for template in ['w', 'wt']:
+    #for decs in [True, False]:
+    write_config_yml_script(template, params_bbpw = dict_params_bbpw,
+                                dict_compsep= dict_ells_bbpw,
+                                cros = True, mmt = False, dec = False) # dc0 or dcs, simple
+    if NAME_COMP == 'dcs':
+        write_config_yml_script(template, params_bbpw = dict_params_bbpw,
+                                dict_compsep= dict_ells_bbpw,
+                                cros = True, mmt = False, dec = False)
