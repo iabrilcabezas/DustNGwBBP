@@ -18,7 +18,7 @@ mtype=soflat
 apodeg=5.0
 smooth=0.4
 templ=p353
-# w_type=dfwtm # 00 #w #wt
+w_type=dfwt # 00 #w #wt
 ctype=dcs
 cross=0
 moments=0
@@ -49,8 +49,8 @@ smoothes=( "10.0" "20.0" "40.0")
 #do
 #for decor in $decorrs
 #do
-for w_type in $wtypes
-do
+#for w_type in $wtypes
+#do
 
     name_run=${experiment}_${nside}_${cov_corr}_${templ}_${lmin}_${nbands}_${dell}_${mtype}_${apodeg}_${smooth}_${dellnmt}_${pol}_${ctype}_${weight}
     name_c=${name_run}_${cross}_${moments}_${decor}_${w_type}_${lminbb}_${lmaxbb}_${bands}
@@ -64,7 +64,7 @@ do
 
     # Run pipeline
     python -m bbpower BBCompSep --cells_coadded=$base_folder/${name_cls}${all}  --cells_noise=$base_folder/${name_cls}${noise} --cells_fiducial=$base_folder/${name_cls}${fid}    --config=$base_folder/config_files/${name_c}.yml      --param_chains=$base_folder/chains/${name_c}.npz       --config_copy=$base_folder/temp/config_copy.yml
-done
+#done
 #done
 #done
 #done
