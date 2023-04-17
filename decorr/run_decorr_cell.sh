@@ -1,0 +1,3 @@
+#(BBenv)iabril@nersc:login22 [04:28:57] [/global/cfs/cdirs/act/software/iabril/condaenvs/github_reps/BBPower]
+# --cells_* can be rubbish
+python -m bbpower BBCompSep --cells_fiducial=/global/cfs/cdirs/act/data/iabril/BBPower/230414/so_256_w2_p353_30_9_30_soflat_5.0_0.4_10_B_dcs_Cl_w_fid.fits --cells_noise=/global/cfs/cdirs/act/data/iabril/BBPower/230414/so_256_w2_p353_30_9_30_soflat_5.0_0.4_10_B_dcs_Cl_w_noi.fits --cells_coadded=/global/cfs/cdirs/act/data/iabril/BBPower/230414/so_256_w2_p353_30_9_30_soflat_5.0_0.4_10_B_dcs_Cl_w_tot.fits  --config=/global/cfs/cdirs/act/data/iabril/BBPower/230417/config_files/config_decorr.yml --output_dir=/global/cfs/cdirs/act/data/iabril/BBPower/230417/
