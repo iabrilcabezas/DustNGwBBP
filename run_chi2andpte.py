@@ -6,7 +6,7 @@ chi2 and PTE calculation
 from pte.calc_chi2pte import get_chi2andpte
 from utils_bbpw.params import dict_ells_bbpw, niterbands
 
-for type_cov in ['wt' , 'df00', 'dfwt', 'dfwtm']:
+for type_cov in ['wt' , 'dfwt' ]: # 'df00', 'dfwtm']:
     print(type_cov)
     #iterate over all band combinations
     for biter in niterbands:
