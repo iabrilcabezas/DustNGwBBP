@@ -8,7 +8,7 @@ from utils.params import PATH_DICT
 DICT_COMP1 =   {'name': 'Dust',
                     'sed': 'Dust',
                     'cl': {'BB': 'ClPowerLaw'},
-                    'sed_parameters': {'beta_d': ['beta_d', 'Gaussian', [1.59, 0.11]],
+                    'sed_parameters': {'beta_d': ['beta_d', 'Gaussian', [1.59, 0.5]],
                                         'temp_d': ['temp', 'fixed', [19.6]],
                                         'nu0_d': ['nu0', 'fixed', [353.0]]},
                     'cl_parameters': {'BB': {'amp_d_bb': ['amp', 'tophat', [0.0, 5.0, 'inf']],
@@ -17,23 +17,23 @@ DICT_COMP1 =   {'name': 'Dust',
 DICT_COMP2 = {  'name': 'Synchrotron',
                     'sed': 'Synchrotron',
                     'cl': { 'BB': 'ClPowerLaw'},
-                    'sed_parameters': { 'beta_s': ['beta_pl', 'Gaussian', [-3.0, 0.3]],
+                    'sed_parameters': { 'beta_s': ['beta_pl', 'Gaussian', [-3.0, 0.6]],
                                         'nu0_s' : ['nu0', 'fixed', [23.]]},
                     'cl_parameters': {'BB': {   'amp_s_bb': ['amp', 'tophat', [0., 2., "inf"]],
                                                 'alpha_s_bb': ['alpha', 'tophat', [-1., -0.4, 0.]],
                                                 'l0_s_bb': ['ell0', 'fixed', [80.]] }}}
-DICT_COMP1_MOMENTS = {   'amp_d_beta': ['amp_beta', 'tophat', [-10., 0., 10.]],
+DICT_COMP1_MOMENTS = {   'amp_d_beta': ['amp_beta', 'tophat', [0, 2., 'inf']],
                                     'gamma_d_beta': ['gamma_beta', 'tophat', [-6., -3., -2.]]}
-DICT_COMP2_MOMENTS = {   'amp_s_beta': ['amp_beta', 'tophat', [-10., 0., 10.]],
+DICT_COMP2_MOMENTS = {   'amp_s_beta': ['amp_beta', 'tophat', [0., 2., 10.]],
                                     'gamma_s_beta': ['gamma_beta', 'tophat', [-6., -3., -2.]]}
 DICT_COMP1_CROSS = { 'epsilon_ds': ['component_2', 'tophat', [-1., 0., 1.]]}
 
 DICT_CMBMODEL = {'cmb_templates': [PATH_DICT['bbpipe_path'] + 'examples/data/camb_lens_nobb.dat',
                                    PATH_DICT['bbpipe_path'] + 'examples/data/camb_lens_r1.dat'],
-                'params': {'r_tensor': ['r_tensor', 'tophat', [-0.1, 0.0, 0.1]],
+                'params': {'r_tensor': ['r_tensor', 'tophat', [-1, 0.0, 1]],
                             'A_lens': ['A_lens', 'tophat', [0.0, 1.0, 2.0]]}}
 
-DICT_COMP1_DECORR = { 'decorr_amp_d' : ['decorr_amp', 'tophat', [0.7, 1.0, 1.3]],
+DICT_COMP1_DECORR = { 'decorr_amp_d' : ['decorr_amp', 'tophat', [0.5, 1.1, 1.5]],
                       'decorr_nu0_d' : ['decorr_nu0', 'fixed', [353.0]]}
 DICT_COMP2_DECORR = { 'decorr_amp_s' : ['decorr_amp', 'tophat', [0.9, 1.0, 1.1]],
                       'decorr_nu0_s' : ['decorr_nu0', 'fixed', [23.0]]}
