@@ -53,7 +53,7 @@ def get_namecells(experiment, nside, polarization, ctype):
     Returns string name for compute_cl_nobin()
 
     * Parameters *
-    experiment: 'so', 'bicep', 'cmbs4','cmbs4d'
+    experiment: 'so', 'bicep', 'cmbs4','cmbs4d', 'lbrd'
         experiment to determine bandpasses, noise levels, sky coverage (fsky)
     nside: int
         resolution of maps

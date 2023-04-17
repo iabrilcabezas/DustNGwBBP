@@ -28,7 +28,7 @@ def get_band_names():
     **Returns**
     list of band names
     '''
-    if EXPERIMENT in ['so', 'cmbs4', 'cmbs4d']:
+    if EXPERIMENT in ['so', 'cmbs4', 'cmbs4d', 'lbrd']:
         band_names = band_names_config.so
     if EXPERIMENT == 'bicep':
         band_names = band_names_config.bicep

@@ -148,10 +148,11 @@ def get_fsky():
 
         fsky = np.mean(fsky_fromnoise()[1])
 
-    if EXPERIMENT in ['so', 'cmbs4','cmbs4d']:
-
+    if EXPERIMENT in ['so', 'cmbs4','cmbs4d', 'lbrd']: # only for noise usage
+        
         fsky = 0.1
-
+        if EXPERIMENT == 'lbrd':
+            print('warning: i am setting fsky of litebird to 0.1, because only necessary for noise')
     return fsky
 
 

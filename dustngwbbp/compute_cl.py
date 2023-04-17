@@ -35,7 +35,7 @@ def import_bandpasses():
     if EXPERIMENT == 'bicep':
         bpss = {n: Bpass(n, PATH_DICT['BK15_data'] +\
                              f'BK15_{n}_bandpass_20180920.txt') for n in band_names}
-    if EXPERIMENT in ['so','cmbs4','cmbs4d']:
+    if EXPERIMENT in ['so','cmbs4','cmbs4d', 'lbrd']:
         bpss = {n: Bpass(n,PATH_DICT['bbpipe_path'] +\
                              f'examples/data/bandpasses/{n}.txt') for n in band_names}
 
@@ -54,7 +54,7 @@ def import_beams(ell_array):
     if EXPERIMENT == 'bicep':
         beams ={band_names[i]: b for i, b in \
                     enumerate(nc.bicep_beams_exp(ell_array))}
-    if EXPERIMENT in ['so','cmbs4','cmbs4d']:
+    if EXPERIMENT in ['so','cmbs4','cmbs4d', 'lbrd']:
         beams ={band_names[i]: b for i, b in \
                     enumerate(nc.Simons_Observatory_V3_SA_beams(ell_array))}
 
