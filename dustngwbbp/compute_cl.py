@@ -171,6 +171,49 @@ def add_powerspectra(s_d, bpw_freq_sig, leff, do_bin, weight = 'Cl'):
 
     return s_d
 
+def add_powerspectra_1d(s_d, cell_array, leff, do_bin, weight = 'Cl'):
+
+    '''
+    Adds power spectra to Sacc object
+
+    ** Parameters **
+    s_d: sacc object
+        object to add P(k)
+    cell_array: np.array
+        power spectra that will be added - size (nbands, ncross)
+    leff: np.array
+        ell each power spectra band corresponds to
+    do_bin: bool
+        if the power spectra is binned, provide window too
+    weight: 'Cl' or 'Dl'
+        binnin of window if do_bin
+    '''
+
+    if do_bin:
+        windows = get_windows(weight)
+        s_wins = sacc.BandpowerWindow(LARR_ALL, windows.T)
+
+    map_names=[]
+    for i_freq in range(nfreqs):
+        if 'E' in POLARIZATION_cov:
+            map_names.append(f'band{i_freq+1}_E')
+        if 'B' in POLARIZATION_cov:
+            map_names.append(f'band{i_freq+1}_B')
+
+    for counter, (i_tr1, i_tr2) in enumerate(zip(indices_tr[0], indices_tr[1])):
+        band12 = np.array([map_names[i_tr1][:-2], map_names[i_tr2][:-2]])
+        pol12  = np.array([map_names[i_tr1][-1].lower(), map_names[i_tr2][-1].lower()])
+        cl_type = f'cl_{pol12[0]}{pol12[1]}'
+
+        if do_bin:
+            s_d.add_ell_cl(cl_type, band12[0], band12[1], LEFF, cell_array[:, counter],
+                         window = s_wins)
+        else:
+            s_d.add_ell_cl(cl_type, band12[0], band12[1], leff, cell_array[:, counter]) # note differences in leff
+
+
+    return s_d
+
 
 def add_noise(lmax, bpw_freq_sig, fsky, do_bin, weight = 'Cl'):
 
