@@ -8,8 +8,7 @@ from astropy.io import fits
 import sacc
 from scipy import stats
 from utils.params import PATH_DICT, NAME_RUN, NAME_COMP
-from utils.params import NSIDE, POLARIZATION_cov
-from utils.binning import rebin, cut_array
+from utils.params import POLARIZATION_cov
 from utils.sed import get_band_names
 
 WEIGHT = 'Cl'
@@ -42,7 +41,7 @@ class SfClass():
     def __init__(self, type_cov, bands,lmin_bbp, lmax_bbp):
 
         # load fiducial power spectrum for NAME_RUN parameters
-        name_sf = PATH_DICT['output_path'] + '_'.join([NAME_RUN, WEIGHT, 'wt']) + '_fid.fits'
+        name_sf = PATH_DICT['output_path'] + '_'.join([NAME_RUN, WEIGHT, 'w']) + '_fid.fits'
 
         self.s_f = sacc.Sacc.load_fits(name_sf)
         self.s_fg = sacc.Sacc.load_fits(name_sf)
