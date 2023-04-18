@@ -1,7 +1,7 @@
 # These parameters are accessible to all stages
 global:
     # HEALPix resolution parameter
-    nside: 64
+    nside: 256
     # Use D_l = l*(l+1)*C_l/(2*pi) instead of C_l?
     compute_dell: False
 
@@ -35,7 +35,7 @@ BBCompSep:
     # Can be ['E'], ['B'] or ['E','B'].
     pol_channels: ['B']
     # Scale cuts (will apply to all frequencies)
-    l_min: 0
+    l_min: 30
     l_max: 300
 
     # CMB model
