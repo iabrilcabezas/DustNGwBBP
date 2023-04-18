@@ -98,6 +98,7 @@ def pathnames():
         'planck_path': Planck data
         'camb_cmb_lens_nobb': CMB power spectrum, including lensing, without bb
         'output_path': location of file output storage
+        'input_path': location of file input storage
         'BK15_data': BK15 data (bandpasses, noise)
         'bbpipe_path': path to bbpower code. contains SO bandpasses and noise in examples folder
         'so_path': path where SO mask is stored
@@ -108,6 +109,7 @@ def pathnames():
     bicep_bk15 = config.path_param.bicep_bk15
     bbpipe_path = config.path_param.bbpipe
     output_path = config.path_param.output
+    input_path  = config.path_param.input
     camb_cmb_lens_nobb_path = config.path_param.camb_cmb_lens_nobb
     so_path = config.path_param.so
     template_path = config.path_param.template
@@ -123,6 +125,7 @@ def pathnames():
     dict_path['BK15_data']   = bicep_bk15
     dict_path['bbpipe_path'] = bbpipe_path
     dict_path['output_path'] = output_path
+    dict_path['input_path'] = input_path
     dict_path['camb_cmb_lens_nobb'] = camb_cmb_lens_nobb_path
     dict_path['so_path'] = so_path
     dict_path['template_path'] = template_path
@@ -206,6 +209,7 @@ class PathConfig:
 
     def __init__(self, param):
         self.output = param['output_path']
+        self.input = param['input_path']
         self.bicep_bk15 = param['bicep_BK15']
         self.bbpipe  = param['bbpipe_path']
         self.planck_path_cori = param['planck_path_cori']
