@@ -9,7 +9,7 @@ from utils.params import PATH_DICT
 WEIGHT = 'Cl'
 TYPE_COV = 'dfwt'
 
-for i in range(10):
+for i in range(3272,5000):
     print(i)
 
     newpath = PATH_DICT['output_path'] + f'{i}/'
