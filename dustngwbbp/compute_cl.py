@@ -426,7 +426,7 @@ def compute_cl_nobin(ctype):
 
     '''
     Computes fiducial Cl fits file
-    This Cl will go into the computation of the covariance
+    This Cl will go into the computation of the covariance, so it has everything inside
     No binning applied
 
     ** Parameters **
