@@ -1,12 +1,29 @@
 #(BBenv)iabril@nersc:login22 [04:28:57] [/global/cfs/cdirs/act/software/iabril/condaenvs/github_reps/BBPower]
-# --cells_* can be rubbish
-#python -m bbpower BBCompSep --cells_fiducial=/global/cfs/cdirs/act/data/iabril/BBPower/230414/so_256_w2_p353_30_9_30_soflat_5.0_0.4_10_B_dcs_Cl_w_fid.fits --cells_noise=/global/cfs/cdirs/act/data/iabril/BBPower/230414/so_256_w2_p353_30_9_30_soflat_5.0_0.4_10_B_dcs_Cl_w_noi.fits --cells_coadded=/global/cfs/cdirs/act/data/iabril/BBPower/230414/so_256_w2_p353_30_9_30_soflat_5.0_0.4_10_B_dcs_Cl_w_tot.fits  --config=/global/common/software/act/iabril/python/DustNGwBBP/decorr/config_decorr.yml --output_dir=/global/cfs/cdirs/act/data/iabril/BBPower/230417/
+
+module load python
+conda activate /global/cfs/cdirs/act/software/iabril/condaenvs/BBenv
+cd /global/cfs/cdirs/act/software/iabril/condaenvs/github_reps/BBPower
 
 
-## RUN BBCOMPSEP:
+
+# ### FIRST PART, GENERATE DATA WITH DECORR
+# # --cells_* can be rubbish
+# cd /global/cfs/cdirs/act/software/iabril/condaenvs/github_reps/BBPower
+
+# base_folder=/global/cfs/cdirs/act/data/iabril/BBPower/230414
+# rubbish=so_256_w2_p353_30_9_30_soflat_5.0_0.4_10_B_dcs_Cl_w
+
+# config_file=/global/common/software/act/iabril/python/DustNGwBBP/decorr/bbcompsep_decorr.yml
+# outdir=/global/cfs/cdirs/act/data/iabril/BBPower/230503_decorr
+#python -m bbpower BBCompSep --cells_fiducial=${base_folder}/${rubbish}_fid.fits --cells_noise=${base_folder}/${rubbish}_noi.fits --cells_coadded=${base_folder}/${rubbish}_tot.fits  --config=${config_file} --output_dir=${outdir}
+
+# add covariance to cells:
+#cd /global/common/software/act/iabril/python/DustNGwBBP/
+#python run_decorr.py
+## SECOND PART, RUN BBCOMPSEP:
 
 base_folder=/global/cfs/cdirs/act/data/iabril/BBPower/230414
-base_decorr=/global/cfs/cdirs/act/data/iabril/BBPower/230417
+base_decorr=/global/cfs/cdirs/act/data/iabril/BBPower/230503_decorr
 
 # machine=perl
 # experiment=so
@@ -40,13 +57,13 @@ fid=_fid.fits
 #wtypes='w dfwt' # ' wt '
 
 name_run=so_256_w2_p353_30_9_30_soflat_5.0_0.4_10_B_dcs_Cl
-
+config_file=/global/common/software/act/iabril/python/DustNGwBBP/decorr/bbcompsep_decorr.yml
 #for w_type in $wtypes
 #do
-w_type='w'
+w_type='dfwt'
 
 name_cls=${name_run}_${w_type}
 
-python -m bbpower BBCompSep --cells_coadded=$base_decorr/${name_cls}${all}  --cells_noise=$base_folder/${name_cls}${noise} --cells_fiducial=$base_folder/${name_cls}${fid}    --config=/global/common/software/act/iabril/python/DustNGwBBP/decorr/bbcompsep_decorr.yml      --output_dir=$base_decorr/chains/       --config_copy=$base_decorr/temp/config_copy.yml
+python -m bbpower BBCompSep --cells_coadded=$base_decorr/${name_cls}${all}  --cells_noise=$base_folder/${name_cls}${noise} --cells_fiducial=$base_decorr/cells_model.fits    --config=${config_file}      --output_dir=$base_decorr/chains/${w_type}/    --config_copy=$base_decorr/temp/config_copy_${w_type}.yml
 
 #done
