@@ -114,12 +114,12 @@ for no_sim in range(1000):
 
     fits_clean = fits.PrimaryHDU(clean_cell)
     fits_clean.writeto(PATH_DICT['output_path'] + \
-                       '_'.join([NAME_RUN, 'clean_cell', f'{no_sim}']) +  '.fits', overwrite = True)
+                       '_'.join([NAME_RUN, 'clean_cell_', f'{no_sim}']) +  '.fits', overwrite = True)
     fits_clean_cov_g = fits.PrimaryHDU(cov_cleaned_g)
     fits_clean_cov_g.writeto(PATH_DICT['output_path'] + \
-                             '_'.join([NAME_RUN, 'cov_clean_g', f'{no_sim}']) + \
+                             '_'.join([NAME_RUN, 'cov_clean_g_', f'{no_sim}']) + \
                              '.fits', overwrite = True)
     fits_clean_cov_ng = fits.PrimaryHDU(cov_cleaned_ng)
     fits_clean_cov_ng.writeto(PATH_DICT['output_path'] + \
-                              '_'.join([NAME_RUN, 'cov_clean_ng', f'{no_sim}']) +  \
+                              '_'.join([NAME_RUN, 'cov_clean_ng_', f'{no_sim}']) +  \
                               '.fits', overwrite = True)
