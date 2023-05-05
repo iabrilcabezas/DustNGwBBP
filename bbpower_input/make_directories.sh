@@ -1,9 +1,9 @@
 #!/bin/bash
 
-name_run=230417
+name_run=230503_decorr
 base_folder=/global/cfs/cdirs/act/data/iabril/BBPower/
-base_df=/global/cfs/cdirs/act/data/iabril/DustFilaments/
-sims_name=sims_230306/
+#base_df=/global/cfs/cdirs/act/data/iabril/DustFilaments/
+#sims_name=sims_230306/
 
 cd ${base_folder}
 mkdir ${name_run}
