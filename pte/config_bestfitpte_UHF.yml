@@ -20,8 +20,8 @@ BBCompSep:
     #  - 'predicted_spectra': will compute predicted C_ells and
     #        save to file.
     sampler: 'maximum_likelihood'
-    # predict_at_minimum: False
-    # predict_to_sacc: True
+   # predict_at_minimum: False
+   # predict_to_sacc: True
     # If you chose emcee:
     # Number of walkers
     nwalkers: 24
@@ -37,6 +37,7 @@ BBCompSep:
     # Scale cuts (will apply to all frequencies)
     l_min: 30
     l_max: 300
+    bands: ['band5', 'band6']
 
     # CMB model
     cmb_model:
