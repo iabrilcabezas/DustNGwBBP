@@ -218,13 +218,13 @@ def get_random_cell(no_sim, sfclassobj, type_cov):
     # run nsims simulations of cell arrays
     random_cells = np.random.default_rng().multivariate_normal(cell_array, bbcovar_ng)
 
-        # reshape:
-    random_cells = random_cells.reshape((NBANDS, ncross), order = 'F')
+    # reshape: (NBANDS, ncross)
+    random_cells = random_cells.reshape(( NBANDS, ncross), order = 'F')
 
     # 2 new sacc files by adding tracers:
     sd_g = add_tracers(LARR_ALL)
     sd_ng = add_tracers(LARR_ALL)
-    # add power spectra
+    # add power spectra ell_B -> LEFF
     sd_g  = add_powerspectra_1d(sd_g,  random_cells, LEFF, True, WEIGHT)
     sd_ng = add_powerspectra_1d(sd_ng, random_cells, LEFF, True, WEIGHT)
 
@@ -232,10 +232,10 @@ def get_random_cell(no_sim, sfclassobj, type_cov):
     sd_g.add_covariance(bbcovar_g)
     sd_ng.add_covariance(bbcovar_ng)
 
-    sd_g.save_fits(PATH_DICT['output_path'] + f'{no_sim}/w/' + \
+    sd_g.save_fits(PATH_DICT['output_path'] + f'sims/{no_sim}/w/' + \
                    '_'.join([NAME_RUN, WEIGHT, 'w']) + \
                    '_tot.fits', overwrite = True)
-    sd_ng.save_fits(PATH_DICT['output_path'] + f'{no_sim}/{type_cov}/' + \
+    sd_ng.save_fits(PATH_DICT['output_path'] + f'sims/{no_sim}/{type_cov}/' + \
                    '_'.join([NAME_RUN, WEIGHT, type_cov]) + \
                    '_tot.fits', overwrite = True)
 

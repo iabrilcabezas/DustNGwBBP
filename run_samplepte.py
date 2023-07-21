@@ -16,16 +16,16 @@ TYPE_COV = 'dfwt'
 sf_0 = SfClassPte(type_cov = TYPE_COV, bands = 'all', \
                         lmin_bbp = LMIN, lmax_bbp = LMAX)
 
-for i in range(5001, 10000):
+for i in range(10000, int(1e5)):
     print(i)
 
-    newpath = PATH_DICT['output_path'] + f'{i}/'
+    newpath = PATH_DICT['output_path'] + f'sims/{i}/'
     if not os.path.exists(newpath):
         os.makedirs(newpath)
         os.makedirs(newpath + '/w/')
         os.makedirs(newpath + f'/{TYPE_COV}/')
-        os.makedirs(newpath + f'/{TYPE_COV}/LF/')
-        os.makedirs(newpath + f'/{TYPE_COV}/MF/')
-        os.makedirs(newpath + f'/{TYPE_COV}/UHF/')
+        os.makedirs(newpath + '/w/LF/')
+        os.makedirs(newpath + '/w/MF/')
+        os.makedirs(newpath + '/w/UHF/')
 
     get_random_cell(i, sf_0, TYPE_COV)
