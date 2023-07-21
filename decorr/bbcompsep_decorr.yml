@@ -55,18 +55,18 @@ BBCompSep:
     #        likelihood computation.
     #  - 'predicted_spectra': will compute predicted C_ells and
     #        save to file.
-    sampler:  'emcee' # 'emcee' #predicted_spectra
+    sampler: 'emcee' #  'predicted_spectra' #
     #predict_at_minimum: False
     #predict_to_sacc: True
     # If you chose emcee:
     # Number of walkers
     nwalkers: 128
     # Number of iterations per walker
-    n_iters: 50000
+    n_iters: 10000
     # Likelihood type. Options are:
     #  - 'chi2': a standard chi-squared Gaussian likelihood.
     #  - 'h&l': Hamimeche & Lewis likelihood.
-    likelihood_type: 'h&l'
+    likelihood_type: 'chi2'
     # Which polarization channels do you want to include?
     # Can be ['E'], ['B'] or ['E','B'].
     pol_channels: ['B']
@@ -120,7 +120,7 @@ BBCompSep:
                 temp_d: ['temp', 'fixed', [19.6]]
                 nu0_d: ['nu0', 'fixed', [353.]]
             decorr:
-                decorr_amp_d: ['decorr_amp',  'tophat', [0.1, 1.02, 1.1]] #'fixed',[1.0]] #
+                decorr_amp_d: ['decorr_amp',  'tophat', [0.9, 1.02, 1.1]] #'fixed',[1.0]] #
                 decorr_nu01_d: ['decorr_nu01', 'fixed', [353.0]]
                 decorr_nu02_d: ['decorr_nu02', 'fixed', [217.0]]
             cl_parameters:
