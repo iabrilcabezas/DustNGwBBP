@@ -1,13 +1,14 @@
+'''
+the clean2cmb you need
+
+reads best fit from BBCompSep and writes .yml with those params
+'''
+
 # the covariance stays the same in all computations
-
 # read in best fit from chi2.npz file
-
 # call predicted spectral to create cellmodel
-
 # clean cell model best fit
-
 # clean sampled cell
-
 # compute chi2 from the two 
 
 import numpy as np
