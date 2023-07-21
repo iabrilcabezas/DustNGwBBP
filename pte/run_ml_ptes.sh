@@ -1,3 +1,5 @@
+## run bestfit BBCompSep to generate chi2.npz
+
 # --cells_* can be rubbish
 #python -m bbpower BBCompSep --cells_fiducial=/global/cfs/cdirs/act/data/iabril/BBPower/230414/so_256_w2_p353_30_9_30_soflat_5.0_0.4_10_B_dcs_Cl_w_fid.fits --cells_noise=/global/cfs/cdirs/act/data/iabril/BBPower/230414/so_256_w2_p353_30_9_30_soflat_5.0_0.4_10_B_dcs_Cl_w_noi.fits --cells_coadded=/global/cfs/cdirs/act/data/iabril/BBPower/230414/so_256_w2_p353_30_9_30_soflat_5.0_0.4_10_B_dcs_Cl_w_tot.fits  --config=/global/common/software/act/iabril/python/DustNGwBBP/pte/config_bestfitpte.yml --output_dir=/global/cfs/cdirs/act/data/iabril/BBPower/230419_PTE/
 

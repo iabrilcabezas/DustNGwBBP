@@ -1,3 +1,7 @@
+'''
+better version than run_qmatrix.py because it contains no bug. Q should be recalculated for each sim
+'''
+
 import numpy as np
 import sacc
 import yaml

@@ -1,3 +1,5 @@
+# writes sacc from .yml best fit file
+
 # module load python
 # conda activate /global/cfs/cdirs/act/software/iabril/condaenvs/BBenv
 # cd /global/cfs/cdirs/act/software/iabril/condaenvs/github_reps/BBPower

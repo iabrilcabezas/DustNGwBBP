@@ -1,4 +1,9 @@
+'''
+qmatrix
 
+functions required to obtained cleaned CMB spectra
+
+'''
 
 import numpy as np
 import sacc

@@ -1,4 +1,7 @@
+'''
+cleans matrix but chi2 compares against true values (instead of best fit values)
 
+'''
 import numpy as np
 from pte.qmatrix import clean_cells
 
