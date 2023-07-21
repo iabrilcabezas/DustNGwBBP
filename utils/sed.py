@@ -136,3 +136,18 @@ def get_convolved_seds(names, bpss):
         seds[1,ib] = b.convolve_sed(lambda nu : comp_sed(nu,nu0_dust,beta_dust,temp_dust,'dust'))
         seds[2,ib] = b.convolve_sed(lambda nu : comp_sed(nu,nu0_sync,beta_sync,None,'sync'))
     return seds
+
+def get_convolved_seds_varpar(names, bpss, beta_d, temp_d, beta_s):
+
+    '''
+    parameters SED read-in, instead of default sky model
+    '''
+
+    nfreqs = len(names)
+    seds = np.zeros([3,nfreqs])
+    for ib, n in enumerate(names):
+        b = bpss[n]
+        seds[0,ib] = b.convolve_sed(lambda nu : comp_sed(nu,None,None,None,'cmb'))
+        seds[1,ib] = b.convolve_sed(lambda nu : comp_sed(nu,nu0_dust,beta_d,temp_d,'dust'))
+        seds[2,ib] = b.convolve_sed(lambda nu : comp_sed(nu,nu0_sync,beta_s,None,'sync'))
+    return seds
