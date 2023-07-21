@@ -1,6 +1,6 @@
 #!/bin/bash
 
-name_run=230503_decorr
+name_run=230718_Alens03
 base_folder=/global/cfs/cdirs/act/data/iabril/BBPower/
 #base_df=/global/cfs/cdirs/act/data/iabril/DustFilaments/
 #sims_name=sims_230306/
@@ -14,6 +14,7 @@ mkdir temp
 mkdir results_posteriors
 mkdir results_CL
 mkdir results_pte
+mkdir sims
 cd results_pte
 mkdir Figures
 
