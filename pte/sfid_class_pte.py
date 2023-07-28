@@ -273,3 +273,23 @@ def ptechi2_gvsng(nsims, sfclassobj):
         chi_ng_array[i], p_ng_array[i] = calc_chi2(random_cells[i], cell_array, invcov_ng, dof_chi2)
 
     return chi_g_array, chi_ng_array, p_g_array, p_ng_array
+
+# def only_sample_covng(type_cov, sfclassobj):
+
+#     sfclassobj = SfClass(type_cov = type_cov, bands = 'all', \
+#                         lmin_bbp =  dict_bbcomp['lmin'], lmax_bbp = dict_bbcomp['lmax'])
+
+
+#     # obtain cell array and covariances
+#     cell_array, _, bbcovar_ng, _, _ = sfclassobj.get_cellandcov()
+#     # run nsims simulations of cell arrays
+#     random_cells = np.random.default_rng().multivariate_normal(cell_array, bbcovar_ng, size = 1)
+
+#     # create sacc object
+# --- need jupyter 
+    
+#     # save sacc object
+
+
+
+    
