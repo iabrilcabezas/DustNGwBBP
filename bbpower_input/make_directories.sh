@@ -1,6 +1,6 @@
 #!/bin/bash
 
-name_run=230718_Alens03
+name_run=230725
 base_folder=/global/cfs/cdirs/act/data/iabril/BBPower/
 #base_df=/global/cfs/cdirs/act/data/iabril/DustFilaments/
 #sims_name=sims_230306/

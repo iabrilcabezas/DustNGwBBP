@@ -27,7 +27,7 @@ components:
     sync: True
 
 paths:
-    output_path: '/global/cfs/cdirs/act/data/iabril/BBPower/230503_pte/'
+    output_path: '/global/cfs/cdirs/act/data/iabril/BBPower/230725/'
     input_path: '/global/cfs/cdirs/act/data/iabril/BBPower/230414/'
     bicep_BK15: '/global/cfs/cdirs/act/data/iabril/BICEP/'
     bbpipe_path: '/global/cfs/cdirs/act/software/iabril/condaenvs/github_reps/BBPower/'
