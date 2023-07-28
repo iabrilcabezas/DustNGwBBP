@@ -38,8 +38,8 @@ class SfClass_refit():
     def __init__(self, nosim, bands,lmin_bbp, lmax_bbp):
 
         # load fiducial power spectrum for NAME_RUN parameters
-        name_sf_model = f'/global/cfs/cdirs/act/data/iabril/BBPower/230525_sample/sims/{nosim}/w/cells_model.fits'
-        name_sf_random = f'/global/cfs/cdirs/act/data/iabril/BBPower/230525_sample/sims/{nosim}/w/so_256_w2_p353_30_9_30_soflat_5.0_0.4_10_B_dcs_Cl_w_tot.fits'
+        name_sf_model = f'/global/cfs/cdirs/act/data/iabril/BBPower/230725/sims/{nosim}/w/cells_model.fits'
+        name_sf_random = f'/global/cfs/cdirs/act/data/iabril/BBPower/230725/sims/{nosim}/w/so_256_w2_p353_30_9_30_soflat_5.0_0.4_10_B_dcs_Cl_w_tot.fits'
         
         self.s_fg = sacc.Sacc.load_fits(name_sf_random)
         self.s_mg = sacc.Sacc.load_fits(name_sf_model)
