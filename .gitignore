@@ -167,11 +167,4 @@ pte/run_ml_ptes_*.py
 pte/generate_cleancellmodel_*.sh
 decorr/run_decorr_cell_*.sh
 
-pte/run_ml_ptes_2.sh
-pte/run_ml_ptes_3.sh
-pte/run_ml_ptes_6.sh
-pte/run_ml_ptes_8.sh
-pte/run_ml_ptes_9.sh
-pte/run_ml_ptes_4.sh
-pte/run_ml_ptes_5.sh
-pte/run_ml_ptes_7.sh
+pte/run_ml_ptes_*.sh
