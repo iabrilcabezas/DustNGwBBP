@@ -58,7 +58,7 @@ def Q_from_S(S):
     A_ell = np.zeros(( NBANDS, NCOMP, NCOMP)) + np.nan
     B_ell = np.zeros(( NBANDS, NCOMP, nfreqs)) + np.nan
     for i in range(NBANDS):
-        A_ell[i,:,:] = np.matmul( S, np.matmul(invnoise_ell[i], S.transpose()) )
+        A_ell[i,:,:] = np.linalg.inv(np.matmul( S, np.matmul(invnoise_ell[i], S.transpose()) ))
         B_ell[i,:,:] = np.matmul( S, invnoise_ell[i] )
     Q_ell = np.zeros(( NBANDS, nfreqs )) + np.nan
     for i in range(NBANDS):
@@ -134,8 +134,8 @@ def get_clean_chi2(nosim, covtype):
 
     return chi2
 
-path_sims = '/global/cfs/cdirs/act/data/iabril/BBPower/230525_sample/sims/'
-nsims = int(5e4)
+path_sims = '/global/cfs/cdirs/act/data/iabril/BBPower/230725/sims/'
+nsims = int(1e4)
 i0 = 0
 
 chi2_array = np.zeros((nsims, 2))
@@ -146,4 +146,4 @@ for i_ns, ns in enumerate(range(i0, nsims)):
     for i_cov, covs in enumerate(['w', 'dfwt']):
         chi2_array[i_ns, i_cov] = get_clean_chi2(ns, covs)
         
-np.savetxt(path_sims + f'/../chi2_array_{i0}_{nsims}.txt', chi2_array)
+np.savetxt(path_sims + f'/../chi2_array_cleaned_{i0}_{nsims}_v2.txt', chi2_array)
